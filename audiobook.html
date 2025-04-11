@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>オーディオブックプレーヤー</title>
+    <style>
+        /* グローバルスタイル */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        /* プレーヤーコンテナ */
+        .player {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            margin: 20px;
+        }
+        
+        .player-title {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .book-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .book-cover {
+            width: 120px;
+            height: 180px;
+            margin: 0 auto 10px;
+            background-color: #ddd;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #777;
+            font-size: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .book-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .book-author {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        /* コントロール */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            font-size: 0.9em;
+        }
+        
+        .button:hover {
+            background: #0056b3;
+        }
+        
+        #playPause {
+            min-width: 100px;
+        }
+        
+        /* 進行バー */
+        .progress-container {
+            margin-bottom: 10px;
+        }
+        
+        .seekbar-container {
+            position: relative;
+            margin-bottom: 8px;
+        }
+        
+        #seekBar {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #ddd;
+            outline: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        #seekBar::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            background: #007bff;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        #seekBar::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            background: #007bff;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8em;
+            color: #666;
+        }
+        
+        /* 音量コントロール */
+        .volume-container {
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
+        }
+        
+        .volume-icon {
+            margin-right: 10px;
+            color: #666;
+            font-size: 1.2em;
+        }
+        
+        #volumeControl {
+            flex-grow: 1;
+            height: 5px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #ddd;
+            outline: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        #volumeControl::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #007bff;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        #volumeControl::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            background: #007bff;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+        
+        /* レスポンシブデザイン */
+        @media (max-width: 600px) {
+            .player {
+                padding: 10px;
+                margin: 10px;
+            }
+            
+            .button {
+                font-size: 0.8em;
+                padding: 8px 12px;
+            }
+            
+            #playPause {
+                min-width: 80px;
+            }
+            
+            .book-cover {
+                width: 100px;
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="player">
+        <h2 class="player-title">オーディオブックプレーヤー</h2>
+        
+        <div class="book-info">
+            <div class="book-cover">カバー画像</div>
+            <div class="book-title">サンプルオーディオブック</div>
+            <div class="book-author">作者名</div>
+        </div>
+        
+        <!-- オーディオ要素 -->
+        <audio id="audio">
+            <source src="https://file-examples.com/storage/fe19e15eac6560f8c936254/2017/11/file_example_MP3_700KB.mp3" type="audio/mpeg">
+            お使いのブラウザはオーディオ要素をサポートしていません。
+        </audio>
+        
+        <!-- 再生コントロール -->
+        <div class="controls">
+            <button id="rewind" class="button">◄ 10秒</button>
+            <button id="playPause" class="button">再生</button>
+            <button id="forward" class="button">10秒 ►</button>
+        </div>
+        
+        <!-- 進行バー -->
+        <div class="progress-container">
+            <div class="seekbar-container">
+                <input type="range" id="seekBar" min="0" max="100" value="0">
+            </div>
+            <div class="time-display">
+                <span id="currentTime">0:00</span>
+                <span id="duration">0:00</span>
+            </div>
+        </div>
+        
+        <!-- 音量コントロール -->
+        <div class="volume-container">
+            <span class="volume-icon">🔊</span>
+            <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="1">
+        </div>
+    </div>
+    
+    <script>
+        // DOM要素を取得
+        const audio = document.getElementById('audio');
+        const playPause = document.getElementById('playPause');
+        const rewind = document.getElementById('rewind');
+        const forward = document.getElementById('forward');
+        const seekBar = document.getElementById('seekBar');
+        const currentTimeDisplay = document.getElementById('currentTime');
+        const durationDisplay = document.getElementById('duration');
+        const volumeControl = document.getElementById('volumeControl');
+        const volumeIcon = document.querySelector('.volume-icon');
+        
+        // 再生/一時停止の切り替え
+        playPause.addEventListener('click', () => {
+            if (audio.paused) {
+                audio.play();
+                playPause.textContent = '一時停止';
+            } else {
+                audio.pause();
+                playPause.textContent = '再生';
+            }
+        });
+        
+        // 10秒巻き戻し
+        rewind.addEventListener('click', () => {
+            audio.currentTime = Math.max(0, audio.currentTime - 10);
+        });
+        
+        // 10秒早送り
+        forward.addEventListener('click', () => {
+            audio.currentTime = Math.min(audio.duration, audio.currentTime + 10);
+        });
+        
+        // シークバーの更新と操作
+        audio.addEventListener('timeupdate', () => {
+            // 現在の再生時間を表示
+            updateTimeDisplay();
+            
+            // シークバーの値を更新（オーディオの再生中のみ）
+            if (!seekBar.getAttribute('data-seeking')) {
+                const percent = (audio.currentTime / audio.duration) * 100;
+                seekBar.value = percent;
+            }
+        });
+        
+        // シークバーでの再生位置変更
+        seekBar.addEventListener('mousedown', () => {
+            seekBar.setAttribute('data-seeking', 'true');
+        });
+        
+        seekBar.addEventListener('mouseup', () => {
+            seekBar.removeAttribute('data-seeking');
+        });
+        
+        seekBar.addEventListener('input', () => {
+            const seekTime = audio.duration * (seekBar.value / 100);
+            audio.currentTime = seekTime;
+            updateTimeDisplay();
+        });
+        
+        // メタデータ読み込み時に総時間を表示
+        audio.addEventListener('loadedmetadata', () => {
+            // 総時間を表示
+            durationDisplay.textContent = formatTime(audio.duration);
+            
+            // シークバーの最大値を調整（パーセントで設定されているため変更不要）
+            updateTimeDisplay();
+        });
+        
+        // 音量調整
+        volumeControl.addEventListener('input', () => {
+            audio.volume = volumeControl.value;
+            updateVolumeIcon();
+        });
+        
+        // 時間表示の更新関数
+        function updateTimeDisplay() {
+            currentTimeDisplay.textContent = formatTime(audio.currentTime);
+            if (!isNaN(audio.duration)) {
+                durationDisplay.textContent = formatTime(audio.duration);
+            }
+        }
+        
+        // 音量アイコンの更新
+        function updateVolumeIcon() {
+            const volume = audio.volume;
+            
+            if (volume === 0) {
+                volumeIcon.textContent = '🔇';
+            } else if (volume < 0.5) {
+                volumeIcon.textContent = '🔉';
+            } else {
+                volumeIcon.textContent = '🔊';
+            }
+        }
+        
+        // 時間のフォーマット（秒をMM:SS形式に変換）
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return "0:00";
+            
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
+            
+            // 秒が一桁の場合は前に0を付ける
+            const formattedSeconds = remainingSeconds < 10 ? `0${remainingSeconds}` : remainingSeconds;
+            
+            return `${minutes}:${formattedSeconds}`;
+        }
+        
+        // 初期化
+        function init() {
+            // 初期音量を設定
+            audio.volume = volumeControl.value;
+            updateVolumeIcon();
+            
+            // オーディオを先読み（プリロード）
+            audio.load();
+        }
+        
+        // ページ読み込み時に初期化
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
