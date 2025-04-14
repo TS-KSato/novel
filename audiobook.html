@@ -4,11 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
     <title>オーディオブックプレーヤー</title>
     <style>
-        /* グローバルスタイル - リセットを最小限に */
+        /* Reset and Global Styles */
         * {
             margin: 0;
             padding: 0;
@@ -17,7 +16,6 @@
 
         body {
             font-family: system-ui, -apple-system, sans-serif;
-            /* システムフォントを優先 */
             background: #f8f8f8;
             display: flex;
             justify-content: center;
@@ -25,27 +23,23 @@
             min-height: 100vh;
             line-height: 1.6;
             color: #333;
-            /* 基本テキスト色 (維持 or #1A202C など) */
         }
 
-        /* プレーヤーコンテナ */
+        /* Player Container */
         .player {
             background: white;
-            /* 維持 */
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
             max-width: 400px;
             width: 100%;
             margin: 20px;
-            /* will-change: transform; を削除 */
         }
 
         .player-title {
             text-align: center;
             margin-bottom: 20px;
             color: #005760;
-            /* ダークバリアント */
             font-size: 1.5rem;
         }
 
@@ -58,29 +52,23 @@
             width: 120px;
             height: 180px;
             margin: 0 auto 10px;
-            background-image: url('cover04.png');
-            background-size: cover;
-            background-position: center;
+            background: url('cover04.png') center/cover;
             border-radius: 5px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            contain: strict;
-            /* 維持 */
         }
 
         .book-title {
             font-weight: bold;
             margin-bottom: 5px;
             color: #005760;
-            /* ダークバリアント */
         }
 
         .book-author {
             font-size: 0.9em;
             color: #156b75;
-            /* サブカラー */
         }
 
-        /* コントロール */
+        /* Controls */
         .controls {
             display: flex;
             justify-content: space-between;
@@ -90,42 +78,26 @@
 
         .button {
             background: #007a88;
-            /* メインカラー */
             color: white;
-            /* コントラストOK (7.12:1) */
             border: none;
             border-radius: 5px;
             padding: 10px 15px;
             cursor: pointer;
-            transition: background 0.2s ease;
             font-size: 0.9em;
             font-weight: 500;
-            touch-action: manipulation;
         }
 
         .button:hover {
             background: #005760;
-            /* ダークバリアント */
-        }
-
-        .button:focus {
-            /* フォーカススタイルは下部の共通ルールで指定 */
-            outline: none;
-            /* デフォルトのアウトラインを消して共通スタイルを適用 */
         }
 
         #playPause {
             min-width: 100px;
         }
 
-        /* 進行バー */
+        /* Progress Bar */
         .progress-container {
             margin-bottom: 10px;
-        }
-
-        .seekbar-container {
-            position: relative;
-            margin-bottom: 8px;
         }
 
         #seekBar {
@@ -134,32 +106,17 @@
             -webkit-appearance: none;
             appearance: none;
             background: #d8d8d8;
-            /* 維持 or 薄い青緑系 (#e0f2f7) */
-            outline: none;
             border-radius: 4px;
             cursor: pointer;
-            touch-action: manipulation;
         }
 
-        #seekBar::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 16px;
-            height: 16px;
-            background: #007a88;
-            /* メインカラー */
-            border-radius: 50%;
-            cursor: pointer;
-        }
-
+        #seekBar::-webkit-slider-thumb,
         #seekBar::-moz-range-thumb {
             width: 16px;
             height: 16px;
             background: #007a88;
-            /* メインカラー */
             border-radius: 50%;
             cursor: pointer;
-            border: none;
         }
 
         .time-display {
@@ -167,12 +124,12 @@
             justify-content: space-between;
             font-size: 0.9em;
             color: #156b75;
-            /* サブカラー (背景白とのコントラスト 4.16:1 - やや低いので #005760 (6.05:1) の方が良いかも) */
             font-weight: 500;
         }
 
-        /* 音量コントロール */
-        .volume-container {
+        /* Volume and Speed Controls */
+        .volume-container,
+        .speed-container {
             display: flex;
             align-items: center;
             margin-top: 15px;
@@ -181,10 +138,8 @@
         .volume-icon {
             margin-right: 10px;
             color: #156b75;
-            /* サブカラー (背景白とのコントラスト 4.16:1 - やや低いので #005760 (6.05:1) の方が良いかも) */
             font-size: 1.2em;
             cursor: pointer;
-            user-select: none;
         }
 
         #volumeControl {
@@ -193,49 +148,17 @@
             -webkit-appearance: none;
             appearance: none;
             background: #d8d8d8;
-            /* 維持 or 薄い青緑系 (#e0f2f7) */
-            outline: none;
             border-radius: 3px;
             cursor: pointer;
-            touch-action: manipulation;
         }
 
-        #volumeControl::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 14px;
-            height: 14px;
-            background: #007a88;
-            /* メインカラー */
-            border-radius: 50%;
-            cursor: pointer;
-        }
-
+        #volumeControl::-webkit-slider-thumb,
         #volumeControl::-moz-range-thumb {
             width: 14px;
             height: 14px;
             background: #007a88;
-            /* メインカラー */
             border-radius: 50%;
             cursor: pointer;
-            border: none;
-        }
-
-        /* 再生速度コントロール */
-        .speed-container {
-            display: flex;
-            align-items: center;
-            margin-top: 15px;
-            margin-bottom: 15px;
-        }
-
-        .speed-label {
-            margin-right: 10px;
-            color: #156b75;
-            /* サブカラー (コントラスト注意) */
-            font-size: 0.9em;
-            min-width: 50px;
-            font-weight: 500;
         }
 
         .speed-buttons {
@@ -244,46 +167,30 @@
         }
 
         .speed-button {
-            /* 青緑系のスタイル例 */
             background: #e0f2f7;
-            /* 薄い青緑 (背景) */
             color: #005760;
-            /* ダークバリアント (文字) コントラストOK */
             border: 1px solid #b3dfe7;
-            /* 中間的な青緑 */
-            /* --- 元のスタイル ---
-            background: #f0f0f0;
-            color: #333;
-            border: 1px solid #ccc; */
             border-radius: 3px;
             padding: 5px 8px;
             cursor: pointer;
             font-size: 0.8em;
-            transition: all 0.2s ease;
-            touch-action: manipulation;
         }
 
         .speed-button.active {
             background: #007a88;
-            /* メインカラー */
             color: white;
-            /* コントラストOK */
-            border-color: #007a88;
-            /* メインカラー */
         }
 
-        /* チャプター選択 */
+        /* Chapters */
         .chapter-container {
             margin-top: 20px;
             border-top: 1px solid #eee;
-            /* 維持 or 薄い青緑系 */
             padding-top: 15px;
         }
 
         .chapter-title {
             font-size: 0.9em;
             color: #005760;
-            /* ダークバリアント */
             margin-bottom: 8px;
             font-weight: 500;
         }
@@ -293,35 +200,22 @@
             padding: 8px 10px;
             border-radius: 5px;
             border: 1px solid #ccc;
-            /* 維持 or #b3dfe7 など */
             background-color: #f9f9f9;
-            /* 維持 or #e0f2f7 など */
             font-size: 0.9em;
             color: #333;
-            /* 維持 or #005760 */
         }
 
-        /* コントロールのアイコン化 */
-        .control-icon {
-            font-size: 1.2em;
+        .error-message {
+            color: #e74c3c;
+            margin-top: 10px;
+            padding: 8px;
+            background-color: #fde2e2;
+            border-radius: 4px;
+            font-size: 0.9em;
+            text-align: center;
+            display: none;
         }
 
-        /* アクセシビリティ向上 - 共通フォーカススタイル */
-        button:focus,
-        input[type="range"]:focus,
-        select:focus,
-        .volume-icon:focus {
-            outline: 2px solid #00a1b3;
-            /* アクセントカラー */
-            outline-offset: 2px;
-            box-shadow: 0 0 0 2px rgba(0, 161, 179, 0.3);
-            /* オプション: より目立たせる場合 */
-        }
-
-        /* input range はブラウザによって挙動が違うので個別に調整が必要な場合あり */
-
-
-        /* レスポンシブデザイン */
         @media (max-width: 600px) {
             .player {
                 padding: 15px;
@@ -351,47 +245,6 @@
             .speed-label {
                 margin-bottom: 5px;
             }
-        }
-
-        /* エラーメッセージスタイル */
-        .error-message {
-            color: #e74c3c;
-            /* 維持 (エラーは赤系が一般的) */
-            margin-top: 10px;
-            padding: 8px;
-            background-color: #fde2e2;
-            /* 維持 */
-            border-radius: 4px;
-            font-size: 0.9em;
-            text-align: center;
-            display: none;
-        }
-
-        /* プリロード用のクラス（見えない要素） */
-        .preload {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            overflow: hidden;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .ai-notice-footer {
-            font-size: 0.8em;
-            /* 少し小さい文字サイズ */
-            color: #555;
-            /* やや薄い文字色 */
-            margin-top: 20px;
-            /* 上の要素との余白 */
-            padding-top: 15px;
-            /* 区切り線とテキストの間の余白 */
-            border-top: 1px solid #eee;
-            /* 上に区切り線 */
-            text-align: center;
-            /* 中央揃え */
-            line-height: 1.5;
-            /* 行間 */
         }
     </style>
 </head>
