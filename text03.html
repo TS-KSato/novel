@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>魔力ナシ貴族の静かな革命</title>
+    <meta name="description" content="魔力を持たぬ少年貴族が前世の知識を武器に、魔法至上主義の学園に挑む。理と感覚が交わるとき、世界に静かな革命が訪れる。">
+    <meta name="author" content="仮想人格工房 × AI">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&display=swap" 
           rel="stylesheet" 
@@ -121,6 +123,21 @@
 .theme-transition-disabled {
             transition: none !important;
         }
+                /* フッターと補足情報のスタイル */
+                footer {
+            margin-top: 2rem; /* 上部の要素との間隔 */
+            padding: 1rem 0; /* 上下のパディング */
+            text-align: center;
+            border-top: 1px solid var(--border-color); /* 上部に区切り線 */
+        }
+
+        .supplementary-note {
+            font-size: 0.9rem; /* ベースフォントより少し小さく */
+            color: var(--muted-color); /* 少し控えめな色 */
+            line-height: 1.6; /* 行間を調整 */
+            max-width: 60ch; /* 読みやすい幅に制限 */
+            margin: 0 auto; /* 中央揃え */
+        }
     </style>
 </head>
 <body>
@@ -137,7 +154,10 @@
     <button id="nextChapter">次の章へ</button>
     <div class="progress-container">
         <div class="progress-bar" id="progressBar"></div>
-    </div>  
+    </div>
+    <footer>
+        <p class="supplementary-note">本コンテンツは、著者名義「仮想人格工房 × AI」の下、AI技術を活用して生成された要素を含みます。人間の企画・監修に基づき制作されています。</p>
+    </footer>
     <script>
         const novelData = [
   {
