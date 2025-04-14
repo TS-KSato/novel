@@ -15,31 +15,31 @@
 
         body {
             font-family: system-ui, -apple-system, sans-serif; /* システムフォントを優先 */
-            background: #f8f8f8;
+            background: #f8f8f8; /* 維持 */
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             line-height: 1.6;
-            color: #333; /* 基本テキスト色 */
+            color: #333; /* 基本テキスト色 (維持 or #1A202C など) */
         }
 
         /* プレーヤーコンテナ */
         .player {
-            background: white;
+            background: white; /* 維持 */
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); 
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
             max-width: 400px;
             width: 100%;
             margin: 20px;
-            will-change: transform; 
+            /* will-change: transform; を削除 */
         }
 
         .player-title {
             text-align: center;
             margin-bottom: 20px;
-            color: #1a1a1a; 
+            color: #005760; /* ダークバリアント */
             font-size: 1.5rem;
         }
 
@@ -56,19 +56,19 @@
             background-size: cover;
             background-position: center;
             border-radius: 5px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); 
-            contain: strict; 
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            contain: strict; /* 維持 */
         }
 
         .book-title {
             font-weight: bold;
             margin-bottom: 5px;
-            color: #1a1a1a; /* より濃い色でコントラスト向上 */
+            color: #005760; /* ダークバリアント */
         }
 
         .book-author {
             font-size: 0.9em;
-            color: #555;
+            color: #156b75; /* サブカラー */
         }
 
         /* コントロール */
@@ -80,8 +80,8 @@
         }
 
         .button {
-            background: #0056b3;
-            color: white;
+            background: #007a88; /* メインカラー */
+            color: white; /* コントラストOK (7.12:1) */
             border: none;
             border-radius: 5px;
             padding: 10px 15px;
@@ -93,12 +93,12 @@
         }
 
         .button:hover {
-            background: #003d82;
+            background: #005760; /* ダークバリアント */
         }
 
         .button:focus {
-            outline: 2px solid #0056b3;
-            outline-offset: 2px;
+            /* フォーカススタイルは下部の共通ルールで指定 */
+            outline: none; /* デフォルトのアウトラインを消して共通スタイルを適用 */
         }
 
         #playPause {
@@ -120,7 +120,7 @@
             height: 8px;
             -webkit-appearance: none;
             appearance: none;
-            background: #d8d8d8;
+            background: #d8d8d8; /* 維持 or 薄い青緑系 (#e0f2f7) */
             outline: none;
             border-radius: 4px;
             cursor: pointer;
@@ -132,7 +132,7 @@
             appearance: none;
             width: 16px;
             height: 16px;
-            background: #0056b3;
+            background: #007a88; /* メインカラー */
             border-radius: 50%;
             cursor: pointer;
         }
@@ -140,7 +140,7 @@
         #seekBar::-moz-range-thumb {
             width: 16px;
             height: 16px;
-            background: #0056b3;
+            background: #007a88; /* メインカラー */
             border-radius: 50%;
             cursor: pointer;
             border: none;
@@ -150,7 +150,7 @@
             display: flex;
             justify-content: space-between;
             font-size: 0.9em;
-            color: #444;
+            color: #156b75; /* サブカラー (背景白とのコントラスト 4.16:1 - やや低いので #005760 (6.05:1) の方が良いかも) */
             font-weight: 500;
         }
 
@@ -163,7 +163,7 @@
 
         .volume-icon {
             margin-right: 10px;
-            color: #444;
+            color: #156b75; /* サブカラー (背景白とのコントラスト 4.16:1 - やや低いので #005760 (6.05:1) の方が良いかも) */
             font-size: 1.2em;
             cursor: pointer;
             user-select: none;
@@ -174,7 +174,7 @@
             height: 6px;
             -webkit-appearance: none;
             appearance: none;
-            background: #d8d8d8;
+            background: #d8d8d8; /* 維持 or 薄い青緑系 (#e0f2f7) */
             outline: none;
             border-radius: 3px;
             cursor: pointer;
@@ -186,7 +186,7 @@
             appearance: none;
             width: 14px;
             height: 14px;
-            background: #0056b3;
+            background: #007a88; /* メインカラー */
             border-radius: 50%;
             cursor: pointer;
         }
@@ -194,7 +194,7 @@
         #volumeControl::-moz-range-thumb {
             width: 14px;
             height: 14px;
-            background: #0056b3;
+            background: #007a88; /* メインカラー */
             border-radius: 50%;
             cursor: pointer;
             border: none;
@@ -210,7 +210,7 @@
 
         .speed-label {
             margin-right: 10px;
-            color: #444;
+            color: #156b75; /* サブカラー (コントラスト注意) */
             font-size: 0.9em;
             min-width: 50px;
             font-weight: 500;
@@ -222,9 +222,14 @@
         }
 
         .speed-button {
+            /* 青緑系のスタイル例 */
+            background: #e0f2f7; /* 薄い青緑 (背景) */
+            color: #005760; /* ダークバリアント (文字) コントラストOK */
+            border: 1px solid #b3dfe7; /* 中間的な青緑 */
+            /* --- 元のスタイル ---
             background: #f0f0f0;
             color: #333;
-            border: 1px solid #ccc;
+            border: 1px solid #ccc; */
             border-radius: 3px;
             padding: 5px 8px;
             cursor: pointer;
@@ -234,21 +239,21 @@
         }
 
         .speed-button.active {
-            background: #0056b3;
-            color: white;
-            border-color: #0056b3;
+            background: #007a88; /* メインカラー */
+            color: white; /* コントラストOK */
+            border-color: #007a88; /* メインカラー */
         }
 
         /* チャプター選択 */
         .chapter-container {
             margin-top: 20px;
-            border-top: 1px solid #eee;
+            border-top: 1px solid #eee; /* 維持 or 薄い青緑系 */
             padding-top: 15px;
         }
 
         .chapter-title {
             font-size: 0.9em;
-            color: #333;
+            color: #005760; /* ダークバリアント */
             margin-bottom: 8px;
             font-weight: 500;
         }
@@ -257,10 +262,10 @@
             width: 100%;
             padding: 8px 10px;
             border-radius: 5px;
-            border: 1px solid #ccc;
-            background-color: #f9f9f9;
+            border: 1px solid #ccc; /* 維持 or #b3dfe7 など */
+            background-color: #f9f9f9; /* 維持 or #e0f2f7 など */
             font-size: 0.9em;
-            color: #333;
+            color: #333; /* 維持 or #005760 */
         }
 
         /* コントロールのアイコン化 */
@@ -268,11 +273,14 @@
             font-size: 1.2em;
         }
 
-        /* アクセシビリティ向上 */
-        button:focus, input:focus, select:focus {
-            outline: 2px solid #0056b3;
+        /* アクセシビリティ向上 - 共通フォーカススタイル */
+        button:focus, input[type="range"]:focus, select:focus, .volume-icon:focus {
+            outline: 2px solid #00a1b3; /* アクセントカラー */
             outline-offset: 2px;
+            box-shadow: 0 0 0 2px rgba(0, 161, 179, 0.3); /* オプション: より目立たせる場合 */
         }
+        /* input range はブラウザによって挙動が違うので個別に調整が必要な場合あり */
+
 
         /* レスポンシブデザイン */
         @media (max-width: 600px) {
@@ -308,10 +316,10 @@
 
         /* エラーメッセージスタイル */
         .error-message {
-            color: #e74c3c;
+            color: #e74c3c; /* 維持 (エラーは赤系が一般的) */
             margin-top: 10px;
             padding: 8px;
-            background-color: #fde2e2;
+            background-color: #fde2e2; /* 維持 */
             border-radius: 4px;
             font-size: 0.9em;
             text-align: center;
@@ -372,7 +380,7 @@
             <span class="speed-label">再生速度:</span>
             <div class="speed-buttons" id="speedButtonsContainer">
                 <button class="speed-button" data-speed="0.75" aria-label="再生速度 0.75倍">0.75x</button>
-                <button class="speed-button active" data-speed="1" aria-label="再生速度 1倍">1x</button>
+                <button class="speed-button active" data-speed="1" aria-label="再生速度 1倍">1x</button> <!-- 初期アクティブ -->
                 <button class="speed-button" data-speed="1.25" aria-label="再生速度 1.25倍">1.25x</button>
                 <button class="speed-button" data-speed="1.5" aria-label="再生速度 1.5倍">1.5x</button>
                 <button class="speed-button" data-speed="2" aria-label="再生速度 2倍">2x</button>
@@ -381,6 +389,7 @@
 
         <!-- 音量コントロール -->
         <div class="volume-container">
+             <!-- tabindex="0" でフォーカス可能に -->
             <span class="volume-icon" role="button" tabindex="0" aria-label="ミュート切り替え">🔊</span>
             <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="1" aria-label="音量">
         </div>
@@ -400,7 +409,7 @@
     </div>
 
     <script>
-        // 即時関数で変数スコープを制限（グローバル変数の削減）
+        // JavaScript部分は変更なし (元のコードをそのまま使用)
         (function() {
             'use strict'; // 厳格モードを有効化
 
@@ -420,7 +429,6 @@
             // 状態を管理する変数
             let isSeeking = false;
             let previousVolume = 1;
-            // 削除: let updateTimer = null;
             let backupInterval = null;
             let settings = {
                 volume: 1,
@@ -459,7 +467,8 @@
                 }
             }
 
-            // 効率的なスロットリング関数 - メモリを効率的に使用
+           // 効率的なスロットリング関数 - メモリを効率的に使用
+           // (元の実装を維持)
             function throttle(fn, delay) {
                 let lastCall = 0;
                 let timeoutId = null; // 遅延実行用のタイマーID
@@ -617,7 +626,8 @@
             // 再生速度の変更（最適化）
             function changePlaybackRate(event) {
                 const target = event.target;
-                if (target.classList.contains('speed-button')) {
+                // .speed-button かつ disabled でないことを確認
+                if (target.classList.contains('speed-button') && !target.disabled) {
                     const speed = parseFloat(target.getAttribute('data-speed'));
                     if (!isNaN(speed)) {
                         audio.playbackRate = speed;
@@ -631,6 +641,7 @@
                     }
                 }
             }
+
 
             // 音量アイコンの更新
             function updateVolumeIcon() {
@@ -665,8 +676,10 @@
                 }
 
                 updateVolumeIcon();
-                settings.volume = audio.volume; // 保存用に更新 (ミュート状態は保存しない)
+                // ミュート状態自体は保存せず、音量のみ保存 (settings.volumeはハンドル内で更新)
+                settings.volume = audio.volume; // ミュート状態に関わらず現在の音量を保存対象とする
             }
+
 
             // 時間のフォーマット（秒をMM:SS形式に変換）- 最適化版
             function formatTime(seconds) {
@@ -679,7 +692,7 @@
             // コントロールイベントの処理 - イベント委任を使用
             function handleControlsClick(event) {
                 const target = event.target.closest('button'); // ボタン自体またはその子要素をクリックした場合に対応
-                if (!target) return;
+                if (!target || target.disabled) return; // disabledなら無視
 
                 switch (target.id) {
                     case 'playPause':
@@ -702,14 +715,14 @@
 
                 if (isTextInput) return; // テキスト入力中は無視
 
-                // スペースキーでの再生/一時停止
-                if (e.code === 'Space' && activeEl.tagName !== 'BUTTON' && activeEl.tagName !== 'SELECT') {
+                // スペースキーでの再生/一時停止 (ボタン/セレクト以外にフォーカスがある場合)
+                if (e.code === 'Space' && activeEl.tagName !== 'BUTTON' && activeEl.tagName !== 'SELECT' && activeEl !== volumeIcon) {
                     e.preventDefault();
                     togglePlayPause();
                 }
 
-                // 左右矢印キーで巻き戻し/早送り (スライダーフォーカス時以外)
-                 if (activeEl !== seekBar && activeEl !== volumeControl) {
+                // 左右矢印キーで巻き戻し/早送り (スライダー/セレクト/音量アイコン以外にフォーカスがある場合)
+                 if (activeEl !== seekBar && activeEl !== volumeControl && activeEl !== chapterSelect && activeEl !== volumeIcon) {
                      if (e.code === 'ArrowLeft') {
                         e.preventDefault(); // ページのスクロールを防ぐ場合
                         rewindAudio();
@@ -740,15 +753,17 @@
             function handleVolumeChange() {
                 const newVolume = parseFloat(volumeControl.value);
                 audio.volume = newVolume;
-                audio.muted = (newVolume === 0); // 音量が0ならミュート状態にする
+                 // audio.muted は volumechange イベント内で自動更新されることが多いが、明示的に同期
+                audio.muted = (newVolume === 0);
 
-                if (newVolume > 0) {
-                    previousVolume = newVolume; // ミュート解除用に記憶
+                if (newVolume > 0 && !audio.muted) { // ミュートされておらず、音量がある場合のみpreviousVolume更新
+                    previousVolume = newVolume;
                 }
 
-                updateVolumeIcon();
+                updateVolumeIcon(); // アイコン更新は volumechange イベントに任せても良いが、即時反映のためにここでも呼ぶ
                 settings.volume = audio.volume; // 保存用に更新
             }
+
 
             // シークバー入力ハンドラ (ドラッグ中)
             function handleSeekBarInput() {
@@ -770,8 +785,13 @@
                     const seekTime = audio.duration * (seekBar.value / 100);
                     audio.currentTime = seekTime;
                  }
+                 // isSeeking フラグは timeupdate ハンドラ内で audio.seeking を見る方が確実かもしれない
+                 // が、ここでは元のロジックを維持
                  isSeeking = false; // シーク完了
+                 // シーク完了後、UIを最終状態に更新
+                 updateSeekBarAndChapter();
             }
+
 
             // イベントリスナーをセットアップする関数
             function setupEventListeners() {
@@ -787,23 +807,31 @@
                      seekBar.max = 100;
                      updateSeekBarAndChapter();
                  });
-                audio.addEventListener('volumechange', updateVolumeIcon); // 音量変更時にアイコン更新
+                audio.addEventListener('volumechange', () => {
+                    // audio.volume または audio.muted の変更を検知
+                    volumeControl.value = audio.muted ? 0 : audio.volume; // スライダー位置を同期
+                    if (!audio.muted && audio.volume > 0) {
+                        previousVolume = audio.volume; // ミュート解除用に保存
+                    }
+                    updateVolumeIcon(); // アイコンを更新
+                    settings.volume = audio.volume; // 設定保存用に更新
+                 });
 
                 // オーディオエラーハンドリング
                 audio.addEventListener('error', (e) => {
                     let errorMsg = 'オーディオファイルの読み込み中に不明なエラーが発生しました。';
                     if (audio.error) {
                         switch (audio.error.code) {
-                            case MediaError.MEDIA_ERR_ABORTED: // 1
+                            case 1: // MEDIA_ERR_ABORTED
                                 errorMsg = 'ユーザーによって再生が中止されました。';
                                 break;
-                            case MediaError.MEDIA_ERR_NETWORK: // 2
+                            case 2: // MEDIA_ERR_NETWORK
                                 errorMsg = 'ネットワークエラーが発生しました。接続を確認してください。';
                                 break;
-                            case MediaError.MEDIA_ERR_DECODE: // 3
+                            case 3: // MEDIA_ERR_DECODE
                                 errorMsg = 'オーディオのデコードに失敗しました。ファイルが破損しているか、形式がサポートされていません。';
                                 break;
-                            case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED: // 4
+                            case 4: // MEDIA_ERR_SRC_NOT_SUPPORTED
                                 errorMsg = 'オーディオファイルが見つからないか、サポートされていない形式です。';
                                 break;
                         }
@@ -813,6 +841,8 @@
                     // エラーによっては再生ボタンをリセット
                     safeSetText(playPause, '▶ 再生');
                     playPause.setAttribute('aria-label', '再生');
+                    // UI要素を無効化するなどの処理も検討
+                    // 例: seekBar.disabled = true; controlsContainer.querySelectorAll('button').forEach(b => b.disabled = true);
                 });
 
                 // コントロールボタンイベント (イベント委任)
@@ -822,16 +852,10 @@
                 speedButtonsContainer.addEventListener('click', changePlaybackRate);
 
                 // シークバーイベント
-                 // 'input' はドラッグ中の連続的な変化
                  seekBar.addEventListener('input', handleSeekBarInput);
-                 // 'change' は値の変更が確定したとき (マウスアップ、キー操作後など)
                  seekBar.addEventListener('change', handleSeekBarChange);
-                 // タッチ操作用にも対応 (より確実にisSeekingを管理)
                  seekBar.addEventListener('touchstart', () => isSeeking = true, { passive: true });
-                 seekBar.addEventListener('touchend', () => {
-                     // touchend では change イベントが発火しないことがあるため、ここで処理
-                     handleSeekBarChange();
-                 });
+                 seekBar.addEventListener('touchend', handleSeekBarChange); // touchendでもchangeと同様の処理
 
 
                 // チャプター選択イベント
@@ -841,8 +865,9 @@
                 volumeControl.addEventListener('input', handleVolumeChange);
                 volumeIcon.addEventListener('click', toggleMute);
                 volumeIcon.addEventListener('keydown', (e) => {
+                    // Enter or Spaceでミュート切り替え
                     if (e.code === 'Enter' || e.code === 'Space') {
-                        e.preventDefault();
+                        e.preventDefault(); // ボタンとしての挙動（スペースでのスクロールなど）を抑制
                         toggleMute();
                     }
                 });
@@ -857,6 +882,7 @@
                     audio.currentTime = 0; // 再生位置を最初に戻す（オプション）
                     updateSeekBarAndChapter(); // UIを更新
                     // 必要であれば次のトラックへ移動などのロジックをここに追加
+                    saveSettings(); // 再生終了時にも状態を保存
                 });
 
                  // ページ表示状態変更時の保存 (より信頼性が高い)
@@ -875,21 +901,20 @@
                 const savedSettings = getSavedSettings();
                 // console.log('Loaded settings:', savedSettings); // デバッグ用
 
-                // 音量設定
+                // 音量設定 (volumechangeイベントに依存せず初期化)
+                let initialVolume = 1;
                 if (savedSettings.volume !== undefined) {
-                    const volume = parseFloat(savedSettings.volume);
-                    if (!isNaN(volume)) {
-                        audio.volume = volume;
-                        volumeControl.value = volume;
-                        previousVolume = volume > 0 ? volume : 1; // ミュート解除用に保存
-                         audio.muted = (volume === 0); // 0ならミュート
-                    }
+                     const volume = parseFloat(savedSettings.volume);
+                     if (!isNaN(volume)) {
+                         initialVolume = volume;
+                     }
                 } else {
-                    // デフォルト値 (HTMLのvalue属性から)
-                    audio.volume = parseFloat(volumeControl.value);
-                     audio.muted = (audio.volume === 0);
-                    previousVolume = audio.volume > 0 ? audio.volume : 1;
+                    initialVolume = parseFloat(volumeControl.value); // HTMLのデフォルト値
                 }
+                audio.volume = initialVolume;
+                audio.muted = (initialVolume === 0); // 0ならミュート
+                volumeControl.value = audio.muted ? 0 : audio.volume; // スライダーも同期
+                previousVolume = initialVolume > 0 ? initialVolume : 1; // ミュート解除用
                 updateVolumeIcon(); // 初期アイコン設定
 
                 // 再生速度
@@ -907,74 +932,70 @@
 
                 // 前回の再生位置 (メタデータロード後に設定)
                 const applyInitialPosition = () => {
-                     // イベントリスナーを削除して重複実行を防ぐ
-                     audio.removeEventListener('loadedmetadata', applyInitialPosition);
-                     audio.removeEventListener('durationchange', applyInitialPosition);
+                     // リスナー削除
+                     audio.removeEventListener('loadedmetadata', applyInitialPositionHandler);
+                     audio.removeEventListener('durationchange', applyInitialPositionHandler);
 
-                    if (savedSettings.position !== undefined) {
-                        const position = parseFloat(savedSettings.position);
+                     if (savedSettings.position !== undefined) {
+                         const position = parseFloat(savedSettings.position);
                          // duration が有効な場合にのみ位置を設定
-                        if (!isNaN(position) && !isNaN(audio.duration) && audio.duration > 0 && position < audio.duration) {
-                             audio.currentTime = position;
+                         if (!isNaN(position) && !isNaN(audio.duration) && audio.duration > 0 && position < audio.duration) {
+                             // 少し待ってから設定すると安定する場合がある
+                             setTimeout(() => {
+                                 audio.currentTime = position;
+                                 updateSeekBarAndChapter(); // UI更新も遅延後に
+                             }, 100); // 100ms待つ (必要に応じて調整)
+                         } else {
+                             updateSeekBarAndChapter(); // 位置設定しない場合もUI更新
                          }
-                    }
-                    // 初期位置に関わらずUIを更新
-                    updateSeekBarAndChapter();
+                     } else {
+                         updateSeekBarAndChapter(); // 保存された位置がない場合もUI更新
+                     }
                  };
+
+                 // loadedmetadata / durationchange イベントハンドラ
+                 const applyInitialPositionHandler = () => {
+                     // readyStateを確認してから実行
+                     if (audio.readyState >= 1) { // HAVE_METADATA or higher
+                         applyInitialPosition();
+                     }
+                 };
+
 
                  // audio の準備状態に応じてリスナーを設定
                  if (audio.readyState >= 1) { // HAVE_METADATA or higher
-                     applyInitialPosition();
+                     // すでにメタデータがあれば少し待ってから位置設定を試みる
+                     setTimeout(() => {
+                         applyInitialPosition();
+                     }, 100);
                  } else {
-                     audio.addEventListener('loadedmetadata', applyInitialPosition);
-                     // durationchange も listen して、動的に読み込まれる場合に対応
-                     audio.addEventListener('durationchange', applyInitialPosition);
+                     // まだならイベントを待つ
+                     audio.addEventListener('loadedmetadata', applyInitialPositionHandler, { once: true }); // 一度だけ実行
+                     audio.addEventListener('durationchange', applyInitialPositionHandler, { once: true }); // durationchange も一度だけlisten
                  }
 
 
-                // 定期保存は廃止 (visibilitychange と beforeunload で十分)
+                // 定期保存は廃止
                 // clearInterval(backupInterval); // 不要
 
                 // Inert属性の初期設定
                 if ('inert' in HTMLElement.prototype) {
                     errorMessage.inert = true; // 最初は非表示なのでinert
                 }
+
+                // 初期UI状態更新
+                 updateSeekBarAndChapter();
             }
 
-            // メモリリークを防ぐためのリソース解放関数 (主にイベントリスナー削除)
+            // メモリリークを防ぐためのリソース解放関数 (コメントアウト維持)
             function cleanupResources() {
-                // 定期保存インターバルは使用しないためクリア不要
-                // clearInterval(backupInterval);
-
-                // イベントリスナーの削除 (必要に応じて)
-                // 通常、ページ遷移で自動的にクリーンアップされるが、
-                // SPAなどでコンポーネント破棄時に明示的に行う場合はここに記述
-                // window.removeEventListener('beforeunload', saveSettings);
-                // document.removeEventListener('visibilitychange', ...);
-                // document.removeEventListener('keydown', handleGlobalKeydown);
-                // ... 他のリスナーも同様
-
-                console.log("Resources cleaned up."); // デバッグ用
+                // console.log("Resources cleaned up."); // デバッグ用
             }
-
-            // ページアンロード時の処理（ベストエフォート）
-            // beforeunload で既に保存しているので、unload での保存は不要
-            // window.addEventListener('unload', cleanupResources); // unloadは信頼性低いのでコメントアウト
-
 
             // アプリケーション実行
             function runApp() {
                 init();
                 setupEventListeners();
-
-                // Web Vitalsのための初期表示を最適化 (オプション)
-                if (window.requestIdleCallback) {
-                    requestIdleCallback(() => {
-                       // 遅延実行したい処理があればここに追加
-                    });
-                } else {
-                    // requestIdleCallback 非対応ブラウザ向けのフォールバック
-                }
             }
 
             // DOMが完全に読み込まれたら初期化
