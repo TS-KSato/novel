@@ -207,15 +207,15 @@
             }
         }
         .book-cover {
-    width: 120px;
-    height: 180px;
-    margin: 0 auto 10px;
-    background-image: url('cover04.png');
-    background-size: cover;
-    background-position: center;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
+            width: 120px;
+            height: 180px;
+            margin: 0 auto 10px;
+            background-image: url('cover04.png');
+            background-size: cover;
+            background-position: center;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -223,7 +223,7 @@
         <h2 class="player-title">オーディオブックプレーヤー</h2>
         
         <div class="book-info">
-            <div class="book-cover">カバー画像</div>
+            <div class="book-cover"></div>
             <div class="book-title">サンプルオーディオブック</div>
             <div class="book-author">作者名</div>
         </div>
@@ -272,13 +272,29 @@
         const volumeIcon = document.querySelector('.volume-icon');
         
         // 再生/一時停止の切り替え
-        playPause.addEventListener('click', () => {
+        function togglePlayPause() {
             if (audio.paused) {
-                audio.play();
-                playPause.textContent = '一時停止';
+                audio.play()
+                    .then(() => {
+                        playPause.textContent = '一時停止';
+                    })
+                    .catch(error => {
+                        console.error('再生エラー:', error);
+                        alert('オーディオの再生中にエラーが発生しました。');
+                    });
             } else {
                 audio.pause();
                 playPause.textContent = '再生';
+            }
+        }
+        
+        playPause.addEventListener('click', togglePlayPause);
+        
+        // キーボード操作（スペースキーで再生/一時停止）
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && document.activeElement.tagName !== 'BUTTON' && document.activeElement.tagName !== 'INPUT') {
+                e.preventDefault(); // ページのスクロールを防止
+                togglePlayPause();
             }
         });
         
@@ -304,13 +320,26 @@
             }
         });
         
-        // シークバーでの再生位置変更
+        // シークバーでの再生位置変更（マウス・タッチ対応）
         seekBar.addEventListener('mousedown', () => {
             seekBar.setAttribute('data-seeking', 'true');
         });
         
-        seekBar.addEventListener('mouseup', () => {
-            seekBar.removeAttribute('data-seeking');
+        seekBar.addEventListener('touchstart', () => {
+            seekBar.setAttribute('data-seeking', 'true');
+        });
+        
+        // ウィンドウ全体にイベントリスナーを追加して、シークバー外でのマウスアップを検出
+        window.addEventListener('mouseup', () => {
+            if (seekBar.getAttribute('data-seeking')) {
+                seekBar.removeAttribute('data-seeking');
+            }
+        });
+        
+        window.addEventListener('touchend', () => {
+            if (seekBar.getAttribute('data-seeking')) {
+                seekBar.removeAttribute('data-seeking');
+            }
         });
         
         seekBar.addEventListener('input', () => {
@@ -328,9 +357,31 @@
             updateTimeDisplay();
         });
         
+        // オーディオエラー処理
+        audio.addEventListener('error', (e) => {
+            console.error('オーディオエラー:', e);
+            alert('オーディオファイルの読み込みに失敗しました。');
+        });
+        
         // 音量調整
         volumeControl.addEventListener('input', () => {
             audio.volume = volumeControl.value;
+            updateVolumeIcon();
+        });
+        
+        // 音量アイコンクリックでミュート切り替え
+        volumeIcon.addEventListener('click', () => {
+            if (audio.volume > 0) {
+                // 現在の音量を保存
+                volumeIcon.dataset.previousVolume = audio.volume;
+                audio.volume = 0;
+                volumeControl.value = 0;
+            } else {
+                // 保存された音量に戻す（デフォルトは1）
+                const previousVolume = volumeIcon.dataset.previousVolume || 1;
+                audio.volume = previousVolume;
+                volumeControl.value = previousVolume;
+            }
             updateVolumeIcon();
         });
         
