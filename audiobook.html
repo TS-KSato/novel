@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>オーディオブックプレーヤー</title>
     <style>
-        /* グローバルスタイル */
+        /* グローバルスタイル - リセットを最小限に */
         * {
             margin: 0;
             padding: 0;
@@ -13,13 +13,14 @@
         }
         
         body {
-            font-family: Arial, sans-serif;
-            background: #f0f0f0;
+            font-family: system-ui, -apple-system, sans-serif; /* システムフォントを優先 */
+            background: #f8f8f8; /* より明るい背景色 */
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             line-height: 1.6;
+            color: #333; /* 基本テキスト色 */
         }
         
         /* プレーヤーコンテナ */
@@ -27,7 +28,7 @@
             background: white;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* 軽量化したシャドウ */
             max-width: 400px;
             width: 100%;
             margin: 20px;
@@ -36,7 +37,8 @@
         .player-title {
             text-align: center;
             margin-bottom: 20px;
-            color: #333;
+            color: #1a1a1a; /* より濃い色でコントラスト向上 */
+            font-size: 1.5rem;
         }
         
         .book-info {
@@ -52,17 +54,18 @@
             background-size: cover;
             background-position: center;
             border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* 軽量化したシャドウ */
         }
         
         .book-title {
             font-weight: bold;
             margin-bottom: 5px;
+            color: #1a1a1a; /* より濃い色でコントラスト向上 */
         }
         
         .book-author {
             font-size: 0.9em;
-            color: #666;
+            color: #555; /* 明確な色でコントラスト向上 */
         }
         
         /* コントロール */
@@ -74,18 +77,24 @@
         }
         
         .button {
-            background: #007bff;
+            background: #0056b3; /* より濃い青でコントラスト向上 */
             color: white;
             border: none;
             border-radius: 5px;
             padding: 10px 15px;
             cursor: pointer;
-            transition: background 0.3s ease;
+            transition: background 0.2s ease; /* トランジション短縮 */
             font-size: 0.9em;
+            font-weight: 500; /* 少し太く */
         }
         
         .button:hover {
-            background: #0056b3;
+            background: #003d82; /* ホバー時はさらに濃く */
+        }
+
+        .button:focus {
+            outline: 2px solid #0056b3; /* フォーカス状態を明確に */
+            outline-offset: 2px;
         }
         
         #playPause {
@@ -104,29 +113,29 @@
         
         #seekBar {
             width: 100%;
-            height: 6px;
+            height: 8px; /* 少し太く */
             -webkit-appearance: none;
             appearance: none;
-            background: #ddd;
+            background: #d8d8d8; /* コントラスト向上 */
             outline: none;
-            border-radius: 3px;
+            border-radius: 4px;
             cursor: pointer;
         }
         
         #seekBar::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 14px;
-            height: 14px;
-            background: #007bff;
+            width: 16px;
+            height: 16px;
+            background: #0056b3; /* ボタンと同色 */
             border-radius: 50%;
             cursor: pointer;
         }
         
         #seekBar::-moz-range-thumb {
-            width: 14px;
-            height: 14px;
-            background: #007bff;
+            width: 16px;
+            height: 16px;
+            background: #0056b3; /* ボタンと同色 */
             border-radius: 50%;
             cursor: pointer;
             border: none;
@@ -135,8 +144,9 @@
         .time-display {
             display: flex;
             justify-content: space-between;
-            font-size: 0.8em;
-            color: #666;
+            font-size: 0.9em; /* サイズ増加 */
+            color: #444; /* コントラスト向上 */
+            font-weight: 500; /* 少し太く */
         }
         
         /* 音量コントロール */
@@ -148,17 +158,18 @@
         
         .volume-icon {
             margin-right: 10px;
-            color: #666;
+            color: #444; /* コントラスト向上 */
             font-size: 1.2em;
             cursor: pointer;
+            user-select: none; /* テキスト選択防止 */
         }
         
         #volumeControl {
             flex-grow: 1;
-            height: 5px;
+            height: 6px; /* 少し太く */
             -webkit-appearance: none;
             appearance: none;
-            background: #ddd;
+            background: #d8d8d8; /* コントラスト向上 */
             outline: none;
             border-radius: 3px;
             cursor: pointer;
@@ -167,23 +178,23 @@
         #volumeControl::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 12px;
-            height: 12px;
-            background: #007bff;
+            width: 14px;
+            height: 14px;
+            background: #0056b3; /* ボタンと同色 */
             border-radius: 50%;
             cursor: pointer;
         }
         
         #volumeControl::-moz-range-thumb {
-            width: 12px;
-            height: 12px;
-            background: #007bff;
+            width: 14px;
+            height: 14px;
+            background: #0056b3; /* ボタンと同色 */
             border-radius: 50%;
             cursor: pointer;
             border: none;
         }
         
-        /* 追加したUI要素 */
+        /* 再生速度コントロール */
         .speed-container {
             display: flex;
             align-items: center;
@@ -193,9 +204,10 @@
         
         .speed-label {
             margin-right: 10px;
-            color: #666;
+            color: #444; /* コントラスト向上 */
             font-size: 0.9em;
             min-width: 50px;
+            font-weight: 500; /* 少し太く */
         }
         
         .speed-buttons {
@@ -206,7 +218,7 @@
         .speed-button {
             background: #f0f0f0;
             color: #333;
-            border: 1px solid #ddd;
+            border: 1px solid #ccc; /* コントラスト向上 */
             border-radius: 3px;
             padding: 5px 8px;
             cursor: pointer;
@@ -215,11 +227,12 @@
         }
         
         .speed-button.active {
-            background: #007bff;
+            background: #0056b3; /* ボタンと同色 */
             color: white;
-            border-color: #007bff;
+            border-color: #0056b3;
         }
 
+        /* チャプター選択 */
         .chapter-container {
             margin-top: 20px;
             border-top: 1px solid #eee;
@@ -228,46 +241,30 @@
         
         .chapter-title {
             font-size: 0.9em;
-            color: #444;
+            color: #333; /* コントラスト向上 */
             margin-bottom: 8px;
+            font-weight: 500; /* 少し太く */
         }
         
         .chapter-select {
             width: 100%;
-            padding: 8px;
+            padding: 8px 10px;
             border-radius: 5px;
-            border: 1px solid #ddd;
+            border: 1px solid #ccc; /* コントラスト向上 */
             background-color: #f9f9f9;
             font-size: 0.9em;
-        }
-        
-        .bookmark-container {
-            margin-top: 15px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        
-        .bookmark-button {
-            background: #f0f0f0;
             color: #333;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-            padding: 5px 10px;
-            cursor: pointer;
-            font-size: 0.8em;
-            display: flex;
-            align-items: center;
-            gap: 5px;
         }
         
-        .bookmark-button:hover {
-            background: #e0e0e0;
-        }
-
         /* コントロールのアイコン化 */
         .control-icon {
             font-size: 1.2em;
+        }
+        
+        /* アクセシビリティ向上 */
+        button:focus, input:focus, select:focus {
+            outline: 2px solid #0056b3;
+            outline-offset: 2px;
         }
         
         /* レスポンシブデザイン */
@@ -301,6 +298,18 @@
                 margin-bottom: 5px;
             }
         }
+
+        /* エラーメッセージスタイル */
+        .error-message {
+            color: #e74c3c;
+            margin-top: 10px;
+            padding: 8px;
+            background-color: #fde2e2;
+            border-radius: 4px;
+            font-size: 0.9em;
+            text-align: center;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -319,17 +328,20 @@
             お使いのブラウザはオーディオ要素をサポートしていません。
         </audio>
         
+        <!-- エラーメッセージ表示エリア -->
+        <div id="errorMessage" class="error-message"></div>
+        
         <!-- 再生コントロール -->
         <div class="controls">
-            <button id="rewind" class="button"><span class="control-icon">⏪</span> 10秒</button>
-            <button id="playPause" class="button">▶ 再生</button>
-            <button id="forward" class="button">10秒 <span class="control-icon">⏩</span></button>
+            <button id="rewind" class="button" aria-label="10秒巻き戻し"><span class="control-icon">⏪</span> 10秒</button>
+            <button id="playPause" class="button" aria-label="再生/一時停止">▶ 再生</button>
+            <button id="forward" class="button" aria-label="10秒早送り">10秒 <span class="control-icon">⏩</span></button>
         </div>
         
         <!-- 進行バー -->
         <div class="progress-container">
             <div class="seekbar-container">
-                <input type="range" id="seekBar" min="0" max="100" value="0">
+                <input type="range" id="seekBar" min="0" max="100" value="0" aria-label="再生位置">
             </div>
             <div class="time-display">
                 <span id="currentTime">0:00</span>
@@ -341,34 +353,24 @@
         <div class="speed-container">
             <span class="speed-label">再生速度:</span>
             <div class="speed-buttons">
-                <button class="speed-button" data-speed="0.75">0.75x</button>
-                <button class="speed-button active" data-speed="1">1x</button>
-                <button class="speed-button" data-speed="1.25">1.25x</button>
-                <button class="speed-button" data-speed="1.5">1.5x</button>
-                <button class="speed-button" data-speed="2">2x</button>
+                <button class="speed-button" data-speed="0.75" aria-label="再生速度 0.75倍">0.75x</button>
+                <button class="speed-button active" data-speed="1" aria-label="再生速度 1倍">1x</button>
+                <button class="speed-button" data-speed="1.25" aria-label="再生速度 1.25倍">1.25x</button>
+                <button class="speed-button" data-speed="1.5" aria-label="再生速度 1.5倍">1.5x</button>
+                <button class="speed-button" data-speed="2" aria-label="再生速度 2倍">2x</button>
             </div>
         </div>
         
         <!-- 音量コントロール -->
         <div class="volume-container">
-            <span class="volume-icon">🔊</span>
-            <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="1">
-        </div>
-        
-        <!-- ブックマーク機能 -->
-        <div class="bookmark-container">
-            <button id="addBookmark" class="bookmark-button">
-                <span>🔖</span> ブックマーク追加
-            </button>
-            <select id="bookmarkList" class="chapter-select">
-                <option value="">保存したブックマーク</option>
-            </select>
+            <span class="volume-icon" role="button" tabindex="0" aria-label="ミュート切り替え">🔊</span>
+            <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="1" aria-label="音量">
         </div>
         
         <!-- チャプター選択 -->
         <div class="chapter-container">
             <div class="chapter-title">チャプター</div>
-            <select id="chapterSelect" class="chapter-select">
+            <select id="chapterSelect" class="chapter-select" aria-label="チャプター選択">
                 <option value="0">第1章：「運命の交差点」</option>
                 <option value="60">第2章：「静かな獅子と頑固な姫」</option>
                 <option value="120">第3章：「星空の下の告白」</option>
@@ -380,7 +382,7 @@
     </div>
     
     <script>
-        // DOM要素を取得
+        // DOM要素を一度だけ取得してキャッシュ（パフォーマンス向上）
         const audio = document.getElementById('audio');
         const playPause = document.getElementById('playPause');
         const rewind = document.getElementById('rewind');
@@ -392,14 +394,18 @@
         const volumeIcon = document.querySelector('.volume-icon');
         const speedButtons = document.querySelectorAll('.speed-button');
         const chapterSelect = document.getElementById('chapterSelect');
-        const addBookmarkBtn = document.getElementById('addBookmark');
-        const bookmarkList = document.getElementById('bookmarkList');
+        const errorMessage = document.getElementById('errorMessage');
         
-        // スロットリング関数 - パフォーマンス最適化用
+        // 状態を管理する変数
+        let isSeeking = false;
+        let previousVolume = 1;
+        let updateTimer = null;
+        
+        // 効率的なスロットリング関数 - メモリを効率的に使用
         function throttle(fn, delay) {
             let lastCall = 0;
             return function(...args) {
-                const now = new Date().getTime();
+                const now = Date.now(); // new Date().getTime()より高速
                 if (now - lastCall < delay) {
                     return;
                 }
@@ -415,17 +421,30 @@
                 if (playPromise !== undefined) {
                     playPromise.then(() => {
                         playPause.innerHTML = '⏸ 一時停止';
+                        playPause.setAttribute('aria-label', '一時停止');
                     }).catch(error => {
                         console.error('再生エラー:', error);
-                        alert('オーディオの再生中にエラーが発生しました。');
+                        showError('オーディオの再生中にエラーが発生しました。ページを再読み込みするか、別のブラウザをお試しください。');
                     });
                 }
             } else {
                 audio.pause();
                 playPause.innerHTML = '▶ 再生';
+                playPause.setAttribute('aria-label', '再生');
             }
         }
         
+        // エラーメッセージを表示する関数
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            // 5秒後に自動で非表示にする
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 5000);
+        }
+        
+        // イベントリスナーの登録
         playPause.addEventListener('click', togglePlayPause);
         
         // キーボード操作（スペースキーで再生/一時停止）
@@ -442,89 +461,137 @@
         // 10秒巻き戻し
         rewind.addEventListener('click', () => {
             audio.currentTime = Math.max(0, audio.currentTime - 10);
+            updateSeekBarAndChapter();
         });
         
         // 10秒早送り
         forward.addEventListener('click', () => {
             audio.currentTime = Math.min(audio.duration, audio.currentTime + 10);
+            updateSeekBarAndChapter();
         });
         
         // シークバーの更新と操作 - 最適化版
         const updateSeekBar = throttle(() => {
-            // 現在の再生時間を表示
-            updateTimeDisplay();
-            
-            // シークバーの値を更新（ドラッグ中でない場合のみ）
-            if (!seekBar.getAttribute('data-seeking')) {
+            if (!isSeeking && !isNaN(audio.duration)) {
                 const percent = (audio.currentTime / audio.duration) * 100;
                 seekBar.value = percent;
+                currentTimeDisplay.textContent = formatTime(audio.currentTime);
+                updateChapterSelectBasedOnTime();
             }
-        }, 50); // 50ミリ秒ごとに更新（より滑らかな動きと低負荷の両立）
+        }, 100); // 100ミリ秒に増加（パフォーマンス向上）
         
+        // シークバーと表示を更新する関数
+        function updateSeekBarAndChapter() {
+            if (!isNaN(audio.duration)) {
+                const percent = (audio.currentTime / audio.duration) * 100;
+                seekBar.value = percent;
+                currentTimeDisplay.textContent = formatTime(audio.currentTime);
+                updateChapterSelectBasedOnTime();
+            }
+        }
+        
+        // 再生位置の更新イベント
         audio.addEventListener('timeupdate', updateSeekBar);
         
-        // シークバーでの再生位置変更（パッシブイベントリスナーを使用）
+        // 再生終了時の処理
+        audio.addEventListener('ended', () => {
+            playPause.innerHTML = '▶ 再生';
+            playPause.setAttribute('aria-label', '再生');
+        });
+        
+        // シークバー操作
         seekBar.addEventListener('mousedown', () => {
-            seekBar.setAttribute('data-seeking', 'true');
+            isSeeking = true;
         }, { passive: true });
         
         seekBar.addEventListener('touchstart', () => {
-            seekBar.setAttribute('data-seeking', 'true');
+            isSeeking = true;
         }, { passive: true });
         
-        // イベント委譲によるウィンドウレベルのイベント監視
+        // mouseupとtouchendはdocumentに委譲して効率化
         document.addEventListener('mouseup', () => {
-            if (seekBar.getAttribute('data-seeking')) {
-                seekBar.removeAttribute('data-seeking');
+            if (isSeeking) {
+                isSeeking = false;
+                updateChapterSelectBasedOnTime(); // シーク後にチャプター選択を更新
             }
         }, { passive: true });
         
         document.addEventListener('touchend', () => {
-            if (seekBar.getAttribute('data-seeking')) {
-                seekBar.removeAttribute('data-seeking');
+            if (isSeeking) {
+                isSeeking = false;
+                updateChapterSelectBasedOnTime(); // シーク後にチャプター選択を更新
             }
         }, { passive: true });
         
+        // シークバー入力
         seekBar.addEventListener('input', () => {
             const seekTime = audio.duration * (seekBar.value / 100);
             audio.currentTime = seekTime;
-            updateTimeDisplay();
+            currentTimeDisplay.textContent = formatTime(seekTime);
         });
         
         // メタデータ読み込み時に総時間を表示
         audio.addEventListener('loadedmetadata', () => {
-            // 総時間を表示
             durationDisplay.textContent = formatTime(audio.duration);
-            updateTimeDisplay();
+            currentTimeDisplay.textContent = formatTime(audio.currentTime);
+            updateChapterSelectBasedOnTime();
         });
         
-        // オーディオエラー処理
+        // オーディオ読み込みエラー処理
         audio.addEventListener('error', (e) => {
-            console.error('オーディオエラー:', e);
-            alert('オーディオファイルの読み込みに失敗しました。');
+            let errorMsg = 'オーディオファイルの読み込み中にエラーが発生しました。';
+            if (audio.error) {
+                switch (audio.error.code) {
+                    case 1: // MEDIA_ERR_ABORTED
+                        errorMsg = 'ユーザーによって再生が中止されました。';
+                        break;
+                    case 2: // MEDIA_ERR_NETWORK
+                        errorMsg = 'ネットワークエラーが発生しました。';
+                        break;
+                    case 3: // MEDIA_ERR_DECODE
+                        errorMsg = 'オーディオの復号化に失敗しました。';
+                        break;
+                    case 4: // MEDIA_ERR_SRC_NOT_SUPPORTED
+                        errorMsg = 'オーディオファイルが見つからないか、サポートされていない形式です。';
+                        break;
+                }
+            }
+            showError(errorMsg);
+            console.error('Audio error:', audio.error);
         });
         
         // 音量調整
         volumeControl.addEventListener('input', () => {
             audio.volume = volumeControl.value;
             updateVolumeIcon();
+            // 設定をリアルタイムで保存
+            localStorage.setItem('audioVolume', audio.volume);
         }, { passive: true });
         
         // 音量アイコンクリックでミュート切り替え
-        volumeIcon.addEventListener('click', () => {
+        volumeIcon.addEventListener('click', toggleMute);
+        
+        // キーボードでもミュート操作可能に
+        volumeIcon.addEventListener('keydown', (e) => {
+            if (e.code === 'Enter' || e.code === 'Space') {
+                e.preventDefault();
+                toggleMute();
+            }
+        });
+        
+        function toggleMute() {
             if (audio.volume > 0) {
-                // 現在の音量を保存
-                volumeIcon.dataset.previousVolume = audio.volume;
+                previousVolume = audio.volume;
                 audio.volume = 0;
                 volumeControl.value = 0;
             } else {
-                // 保存された音量に戻す（デフォルトは1）
-                const previousVolume = volumeIcon.dataset.previousVolume || 1;
                 audio.volume = previousVolume;
                 volumeControl.value = previousVolume;
             }
             updateVolumeIcon();
-        });
+            // 音量設定を保存
+            localStorage.setItem('audioVolume', audio.volume);
+        }
         
         // 再生速度の変更
         speedButtons.forEach(button => {
@@ -537,6 +604,9 @@
                     btn.classList.remove('active');
                 });
                 button.classList.add('active');
+                
+                // 設定を保存
+                localStorage.setItem('audioSpeed', speed);
             });
         });
         
@@ -545,67 +615,33 @@
             const chapterTime = parseFloat(chapterSelect.value);
             if (!isNaN(chapterTime)) {
                 audio.currentTime = chapterTime;
+                updateSeekBarAndChapter();
                 if (audio.paused) {
                     togglePlayPause();
                 }
             }
         });
         
-        // ブックマーク機能
-        const bookmarks = JSON.parse(localStorage.getItem('audioBookmarks') || '[]');
-        
-        // 保存されたブックマークを読み込む
-        function loadBookmarks() {
-            // まずリストをクリア
-            while (bookmarkList.options.length > 1) {
-                bookmarkList.remove(1);
-            }
-            
-            // ブックマークを追加
-            bookmarks.forEach((bookmark, index) => {
-                const option = document.createElement('option');
-                option.value = bookmark.time;
-                option.textContent = `${formatTime(bookmark.time)} - ${bookmark.label}`;
-                bookmarkList.appendChild(option);
-            });
-        }
-        
-        // ブックマークを追加
-        addBookmarkBtn.addEventListener('click', () => {
+        // 現在の再生位置に基づいてチャプターセレクトを更新
+        function updateChapterSelectBasedOnTime() {
             const currentTime = audio.currentTime;
-            const label = prompt('このブックマークの名前を入力してください:', 
-                               `ブックマーク ${formatTime(currentTime)}`);
             
-            if (label) {
-                const newBookmark = { time: currentTime, label: label };
-                bookmarks.push(newBookmark);
-                
-                // ローカルストレージに保存
-                localStorage.setItem('audioBookmarks', JSON.stringify(bookmarks));
-                
-                // ブックマークリストを更新
-                loadBookmarks();
+            // 現在のオプションをチェック
+            const options = Array.from(chapterSelect.options);
+            let selectedIndex = 0;
+            
+            // 現在の時間に基づいて適切なチャプターを見つける
+            for (let i = options.length - 1; i >= 0; i--) {
+                const optionTime = parseFloat(options[i].value);
+                if (currentTime >= optionTime) {
+                    selectedIndex = i;
+                    break;
+                }
             }
-        });
-        
-        // ブックマークを選択して移動
-        bookmarkList.addEventListener('change', () => {
-            const bookmarkTime = parseFloat(bookmarkList.value);
-            if (!isNaN(bookmarkTime)) {
-                audio.currentTime = bookmarkTime;
-                
-                // 最初のオプション（プレースホルダー）に戻す
-                setTimeout(() => {
-                    bookmarkList.selectedIndex = 0;
-                }, 500);
-            }
-        });
-        
-        // 時間表示の更新関数
-        function updateTimeDisplay() {
-            currentTimeDisplay.textContent = formatTime(audio.currentTime);
-            if (!isNaN(audio.duration)) {
-                durationDisplay.textContent = formatTime(audio.duration);
+            
+            // 選択を更新（変更がある場合のみ）
+            if (chapterSelect.selectedIndex !== selectedIndex) {
+                chapterSelect.selectedIndex = selectedIndex;
             }
         }
         
@@ -615,10 +651,13 @@
             
             if (volume === 0) {
                 volumeIcon.textContent = '🔇';
+                volumeIcon.setAttribute('aria-label', 'ミュート解除');
             } else if (volume < 0.5) {
                 volumeIcon.textContent = '🔉';
+                volumeIcon.setAttribute('aria-label', 'ミュート');
             } else {
                 volumeIcon.textContent = '🔊';
+                volumeIcon.setAttribute('aria-label', 'ミュート');
             }
         }
         
@@ -637,27 +676,34 @@
         
         // 初期化
         function init() {
-            // 音量を設定
-            audio.volume = volumeControl.value;
-            updateVolumeIcon();
-            
-            // ブックマークを読み込む
-            loadBookmarks();
-            
             // ユーザーの設定を復元
             const savedVolume = localStorage.getItem('audioVolume');
             if (savedVolume !== null) {
-                audio.volume = parseFloat(savedVolume);
-                volumeControl.value = audio.volume;
-                updateVolumeIcon();
+                const volume = parseFloat(savedVolume);
+                audio.volume = volume;
+                volumeControl.value = volume;
+                previousVolume = volume > 0 ? volume : 1;
+            } else {
+                // デフォルト値を設定
+                audio.volume = volumeControl.value;
+                previousVolume = audio.volume;
             }
             
+            // 音量アイコンを更新
+            updateVolumeIcon();
+            
+            // 再生速度を復元
             const savedSpeed = localStorage.getItem('audioSpeed');
             if (savedSpeed !== null) {
                 const speed = parseFloat(savedSpeed);
                 audio.playbackRate = speed;
                 speedButtons.forEach(btn => {
-                    btn.classList.toggle('active', parseFloat(btn.getAttribute('data-speed')) === speed);
+                    const btnSpeed = parseFloat(btn.getAttribute('data-speed'));
+                    if (btnSpeed === speed) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
                 });
             }
             
@@ -665,24 +711,42 @@
             const lastPosition = localStorage.getItem('audioPosition');
             if (lastPosition !== null) {
                 audio.currentTime = parseFloat(lastPosition);
+                currentTimeDisplay.textContent = formatTime(audio.currentTime);
+                
+                // チャプターセレクトも更新
+                audio.addEventListener('loadedmetadata', () => {
+                    updateChapterSelectBasedOnTime();
+                }, { once: true });
             }
         }
         
         // 設定を保存
         function saveSettings() {
-            localStorage.setItem('audioVolume', audio.volume);
-            localStorage.setItem('audioSpeed', audio.playbackRate);
-            localStorage.setItem('audioPosition', audio.currentTime);
+            if (!isNaN(audio.currentTime) && !isNaN(audio.duration)) {
+                localStorage.setItem('audioVolume', audio.volume);
+                localStorage.setItem('audioSpeed', audio.playbackRate);
+                localStorage.setItem('audioPosition', audio.currentTime);
+            }
         }
         
         // ページを離れる前に設定を保存
         window.addEventListener('beforeunload', saveSettings);
         
-        // 定期的に設定をバックアップ（30秒ごと）
-        setInterval(saveSettings, 30000);
+        // バックアップの間隔を1分に延長（リソース使用量削減）
+        const backupInterval = setInterval(saveSettings, 60000);
         
-        // ページ読み込み時に初期化
-        document.addEventListener('DOMContentLoaded', init);
+        // ページがアンロードされたときにインターバルをクリア
+        window.addEventListener('unload', () => {
+            clearInterval(backupInterval);
+            saveSettings(); // 最後に一度保存
+        });
+        
+        // DOMが完全に読み込まれたら初期化
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
     </script>
 </body>
 </html>
