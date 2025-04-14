@@ -248,40 +248,32 @@
             }
         }
 
-        .ai-notice-footer {
+        .player-footer {
             font-size: 0.8em;
             color: #555;
-            margin-top: 10px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
             text-align: center;
             line-height: 1.5;
         }
 
-        .ai-notice-footer p {
+        .footer-divider {
+            border: 0;
+            height: 1px;
+            background-color: #eee;
+            margin: 10px auto;
+            width: 80%;
+        }
+
+        .player-footer .ai-notice p,
+        .player-footer .copyright-info p {
             margin-bottom: 5px;
-            /* 段落間の少しの余白 (任意) */
         }
 
-        .ai-notice-footer p:last-child {
+        .player-footer .ai-notice p:last-child,
+        .player-footer .copyright-info p:last-child {
             margin-bottom: 0;
-            /* 最後の段落の下の余白は不要 */
-        }
-
-        .copyright-footer {
-            font-size: 0.8em;
-            color: #555;
-            margin-top: 10px;
-            text-align: center;
-            line-height: 1.5;
-        }
-
-        .copyright-footer p {
-            margin-bottom: 5px;
-            /* 段落間の少しの余白 (任意) */
-        }
-
-        .copyright-footer p:last-child {
-            margin-bottom: 0;
-            /* 最後の段落の下の余白は不要 */
         }
     </style>
 </head>
@@ -355,13 +347,16 @@
                 <option value="300">エピローグ</option>
             </select>
         </div>
-        <div class="ai-notice-footer">
-            本コンテンツは、著者名義「仮想人格工房 × AI」の下、AI技術を活用して生成された要素を含みます。人間の企画・監修に基づき制作されています。
-        </div>
-        <div class="copyright-footer">
-            <p>© 2024 仮想人格工房 × AI</p>
-            <p>掲載されている作品はフィクションであり、実在の人物・団体等とは一切関係ありません。著作権法上の引用の範囲を超えて、本サイトのコンテンツを無断で利用することは禁止されています。</p>
-        </div>
+        <footer class="player-footer">
+            <div class="ai-notice">
+                <p>本コンテンツは、著者名義「仮想人格工房 × AI」の下、AI技術を活用して生成された要素を含みます。人間の企画・監修に基づき制作されています。</p>
+            </div>
+            <hr class="footer-divider">
+            <div class="copyright-info">
+                <p>© 2024 仮想人格工房 × AI</p>
+                <p>掲載されている作品はフィクションであり、実在の人物・団体等とは一切関係ありません。著作権法上の引用の範囲を超えて、本サイトのコンテンツを無断で利用することは禁止されています。</p>
+            </div>
+        </footer>
     </div>
 
     <script>
