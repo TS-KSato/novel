@@ -1,0 +1,2584 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>銀月の姫と獅子の傭兵</title>
+    <style>
+        /* Reset CSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Variables */
+        :root {
+            --main-bg-color: #222;
+            --text-color: #fff;
+            --dialog-bg: rgba(0, 0, 0, 0.7);
+            --choice-bg: rgba(50, 50, 70, 0.9);
+            --choice-hover: rgba(70, 70, 100, 0.9);
+            --menu-bg: rgba(20, 20, 30, 0.95);
+            --accent-color: #9c89ff;
+            --font-main: 'Helvetica Neue', Arial, sans-serif;
+            --title-font: 'Georgia', serif;
+            /* Example title font */
+
+            /* Customizable settings */
+            --dialog-height: 30vh;
+            --transition-duration: 0.5s;
+            /* アニメーション時間 */
+            --background-transition-duration: 1s;
+            /* 背景フェード時間 */
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--main-bg-color);
+            color: var(--text-color);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            position: relative;
+            touch-action: manipulation;
+            /* Prevent double-tap zoom */
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        /* Loading overlay */
+        #loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--main-bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            transition: opacity var(--transition-duration) ease;
+            opacity: 1;
+        }
+
+        #loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent-color);
+            animation: spin 1s infinite linear;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Title Screen */
+        #title-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* FIX: Background URL is now handled by JS for encoding */
+            background: var(--main-bg-color) no-repeat center center;
+            background-size: cover;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 998; /* Below loading, above game */
+            opacity: 0; /* Hidden initially */
+            transition: opacity var(--transition-duration) ease;
+            padding: 20px;
+        }
+
+        #title-screen.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #title-screen h1 {
+            font-family: var(--title-font);
+            font-size: 3rem;
+            color: var(--accent-color);
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .title-button {
+            background-color: var(--choice-bg);
+            color: var(--text-color);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            padding: 15px 30px;
+            margin: 10px 0;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 250px;
+            max-width: 80%;
+            text-align: center;
+            /* REMOVE: will-change: background-color; */
+        }
+
+        .title-button:hover,
+        .title-button:focus {
+            background-color: var(--choice-hover);
+            outline: none;
+        }
+
+        .title-button:active {
+            background-color: var(--accent-color);
+        }
+
+        /* Title screen load slots area */
+        #title-load-slots {
+            margin-top: 20px;
+            width: 300px;
+            max-width: 90%;
+            max-height: 40vh; /* Limit height */
+            overflow-y: auto; /* Add scroll if needed */
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            display: none; /* Hidden initially */
+        }
+
+        #title-load-slots .slot {
+            /* Reuse menu slot style */
+            margin: 5px 0; /* Adjust margin */
+            background-color: var(--choice-bg);
+            color: var(--text-color);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            padding: 10px 12px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+
+        #title-load-slots .slot.empty {
+            opacity: 0.6;
+            cursor: default;
+        }
+
+        #title-load-slots .slot:not(.empty):hover,
+        #title-load-slots .slot:not(.empty):focus {
+            background-color: var(--choice-hover);
+            outline: none;
+        }
+
+        #title-load-slots .slot:not(.empty):active {
+            background-color: var(--accent-color);
+        }
+
+        #title-load-slots .slot-name {
+            font-weight: bold;
+        }
+
+        #title-load-slots .slot-info {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            text-align: right;
+        }
+
+        #title-load-back-button {
+            margin-top: 10px;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+        }
+
+
+        /* Game container - initially hidden */
+        #game {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            opacity: 0; /* Hidden initially */
+            transition: opacity var(--transition-duration) ease;
+            pointer-events: none; /* Disable interaction when hidden */
+        }
+
+        #game.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+
+        /* Background */
+        #background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-color: var(--main-bg-color); /* Default background */
+            transition: opacity var(--background-transition-duration) ease;
+            /* REMOVE: will-change: opacity; Only opacity and transform are strong candidates for will-change */
+            /* REMOVE: transform: translateZ(0); */
+            background-image: none; /* 初期状態は画像なし */
+        }
+
+        #background.fade {
+            opacity: 0;
+        }
+
+
+        /* Dialog box */
+        #dialog-box {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: var(--dialog-height);
+            background-color: var(--dialog-bg);
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            transition: transform var(--transition-duration) ease;
+            cursor: pointer; /* Default cursor is pointer */
+        }
+
+        #speaker {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            color: var(--accent-color);
+            min-height: 1.5rem; /* Ensure space even if empty */
+        }
+
+        #text {
+            font-size: 1.1rem;
+            line-height: 1.5;
+            flex-grow: 1;
+            overflow-y: auto;
+            word-break: break-word; /* Ensure long words break */
+            white-space: pre-wrap; /* Preserve line breaks from text */
+        }
+
+        #next-indicator {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            font-size: 1.5rem;
+            animation: blink 1s infinite;
+            display: none; /* Initially hidden */
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        /* Choices container */
+        #choices {
+            position: absolute;
+            bottom: calc(var(--dialog-height) + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 600px;
+            display: none; /* Initially hidden */
+            flex-direction: column;
+            padding: 10px;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        /* Choice button */
+        .choice {
+            background-color: var(--choice-bg);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            padding: 15px;
+            margin: 0; /* Reset margin */
+            font-size: 1rem;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-align: center;
+            width: 100%;
+            /* REMOVE: will-change: transform, background-color; */
+            /* REMOVE: transform: translateZ(0); */
+        }
+
+        .choice:hover,
+        .choice:focus {
+            background-color: var(--choice-hover);
+            outline: none;
+        }
+
+        .choice:active {
+            background-color: var(--accent-color);
+        }
+
+        /* Menu button */
+        #menu-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--dialog-bg);
+            color: var(--text-color);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            display: flex; /* Initially hidden, controlled by JS */
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            transition: background-color 0.3s;
+        }
+
+        #menu-button:hover {
+            background-color: var(--choice-hover);
+        }
+
+        /* Menu container */
+        #menu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--menu-bg);
+            display: none; /* Initially hidden */
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            z-index: 99;
+            padding: 60px 20px 20px;
+            gap: 15px;
+            overflow-y: auto;
+            opacity: 0;
+            transition: opacity var(--transition-duration) ease;
+            /* REMOVE: will-change: opacity; */
+            /* REMOVE: transform: translateZ(0); */
+        }
+
+        #menu.visible {
+            opacity: 1;
+            display: flex; /* Show when visible */
+        }
+
+        #menu h2 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: var(--accent-color);
+            width: 100%;
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .menu-section {
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+
+        .menu-section h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: var(--accent-color);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 5px;
+        }
+
+        .menu-btn {
+            width: 100%;
+            background-color: var(--choice-bg);
+            color: var(--text-color);
+            border: none;
+            border-radius: 5px;
+            padding: 12px 15px;
+            margin: 5px 0;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-align: center;
+        }
+
+        .menu-btn:hover,
+        .menu-btn:focus {
+            background-color: var(--choice-hover);
+            outline: none;
+        }
+
+        .menu-btn:active {
+            background-color: var(--accent-color);
+        }
+
+        /* Save/load slots */
+        .slot { /* Used by menu and title screen */
+            width: 100%;
+            background-color: var(--choice-bg);
+            color: var(--text-color);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            padding: 12px 15px;
+            margin: 8px 0;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s;
+            /* REMOVE: transform: translateZ(0); */
+        }
+
+        .slot.empty {
+            opacity: 0.6;
+        }
+        /* Make empty load slots non-clickable */
+        .slot.empty[data-action="load"],
+        #title-load-slots .slot.empty {
+            cursor: default;
+        }
+
+        .slot:not(.empty):hover,
+        .slot:not(.empty):focus {
+            background-color: var(--choice-hover);
+            outline: none;
+        }
+
+        .slot:not(.empty):active {
+            background-color: var(--accent-color);
+        }
+
+        .slot-info {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            text-align: right;
+        }
+
+        .slot-name {
+            font-weight: bold;
+        }
+
+
+        /* Settings controls */
+        .setting-control {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 12px 0;
+            flex-wrap: wrap; /* Allow wrapping */
+            gap: 10px;
+        }
+
+        .setting-label {
+            font-size: 1rem;
+            flex-basis: 100px; /* Give label some base width */
+        }
+
+        .setting-value {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap; /* Allow buttons to wrap */
+        }
+
+        .setting-btn {
+            background-color: var(--choice-bg);
+            color: var(--text-color);
+            border: 1px solid transparent;
+            border-radius: 5px;
+            padding: 6px 12px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .setting-btn:hover,
+        .setting-btn:focus {
+            background-color: var(--choice-hover);
+            outline: none;
+        }
+
+        .setting-btn.active {
+            background-color: var(--accent-color);
+            border-color: rgba(255, 255, 255, 0.5);
+            font-weight: bold;
+        }
+
+        /* User Message Area */
+        #message-area {
+            position: absolute;
+            bottom: calc(var(--dialog-height) + 10px); /* Position above dialog */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.85);
+            color: var(--text-color);
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 101; /* Above choices, below menu */
+            opacity: 0;
+            transition: opacity 0.4s ease, visibility 0.4s;
+            visibility: hidden;
+            text-align: center;
+            max-width: 80%;
+            font-size: 0.9rem;
+            pointer-events: none; /* Prevent interaction */
+        }
+
+        #message-area.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        /* Different colors for message types */
+        #message-area.error { background-color: rgba(180, 0, 0, 0.85); }
+        #message-area.warning { background-color: rgba(180, 120, 0, 0.85); }
+        #message-area.info { background-color: rgba(0, 100, 180, 0.85); }
+
+
+        /* Fade in/out animation for dialog text (effect: fade) */
+        .text-fade-in {
+            animation: textFadeIn var(--transition-duration) forwards;
+            /* REMOVE: will-change: opacity; */
+            /* REMOVE: transform: translateZ(0); */
+        }
+
+        @keyframes textFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsive Adjustments */
+        @media (max-height: 650px) {
+            :root {
+                --dialog-height: 35vh;
+            }
+            #dialog-box { padding: 15px; }
+            #speaker { font-size: 1.1rem; margin-bottom: 8px; }
+            #text { font-size: 1rem; }
+            #choices { bottom: calc(var(--dialog-height) + 5px); gap: 5px; }
+            .choice { padding: 12px; }
+            #message-area { bottom: calc(var(--dialog-height) + 5px); } /* Adjust message area position */
+        }
+
+        @media (max-width: 480px) { /* Adjusted breakpoint */
+            #title-screen h1 { font-size: 2rem; }
+            .title-button { font-size: 1rem; padding: 12px 20px; }
+            .setting-control { flex-direction: column; align-items: flex-start; }
+            .setting-label { margin-bottom: 5px; }
+            .setting-value { justify-content: flex-start; }
+            #menu h2 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Loading screen -->
+    <div id="loading">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Title Screen -->
+    <div id="title-screen">
+        <h1>銀月の姫と獅子の傭兵</h1>
+        <button class="title-button" id="start-button">はじめから</button>
+        <button class="title-button" id="load-button">つづきから</button>
+        <button class="title-button" id="quit-button">終了</button>
+        <!-- Load slots for Title Screen -->
+        <div id="title-load-slots">
+            <!-- Slots will be generated here by JS -->
+            <button class="title-button menu-btn" id="title-load-back-button" style="width: auto; font-size: 0.9rem; padding: 8px 15px;">戻る</button>
+        </div>
+    </div>
+
+    <!-- Game container -->
+    <div id="game">
+        <!-- Background -->
+        <div id="background"></div>
+
+        <!-- Dialog box -->
+        <div id="dialog-box">
+            <div id="speaker"></div>
+            <div id="text"></div>
+            <div id="next-indicator">▼</div>
+        </div>
+
+        <!-- Choices -->
+        <div id="choices">
+             <!-- Choices will be generated here by JS -->
+        </div>
+
+        <!-- Menu button -->
+        <button id="menu-button" aria-label="メニューを開く" style="display: none;">☰</button>
+
+        <!-- Menu -->
+        <div id="menu">
+            <h2>メニュー</h2>
+            <div class="menu-section" id="save-section">
+                <h3>セーブ</h3>
+                <div id="save-slots">
+                     <!-- Save slots will be generated here by JS -->
+                </div>
+            </div>
+            <div class="menu-section" id="load-section">
+                <h3>ロード</h3>
+                <div id="load-slots">
+                     <!-- Load slots will be generated here by JS -->
+                </div>
+            </div>
+            <div class="menu-section" id="settings-section">
+                <h3>設定</h3>
+                <div class="setting-control">
+                    <div class="setting-label">テキスト速度</div>
+                    <div class="setting-value" id="text-speed-settings">
+                        <button class="setting-btn" data-speed="slow">ゆっくり (100ms)</button>
+                        <button class="setting-btn" data-speed="normal">ふつう (50ms)</button>
+                        <button class="setting-btn" data-speed="fast">はやい (20ms)</button>
+                    </div>
+                </div>
+                <div class="setting-control">
+                    <div class="setting-label">BGM音量</div>
+                    <div class="setting-value" id="bgm-volume-settings">
+                        <button class="setting-btn" data-volume="0">オフ</button>
+                        <button class="setting-btn" data-volume="0.3">小</button>
+                        <button class="setting-btn" data-volume="0.7">中</button>
+                        <button class="setting-btn" data-volume="1">大</button>
+                    </div>
+                </div>
+                <div class="setting-control">
+                    <div class="setting-label">効果音量</div>
+                    <div class="setting-value" id="sfx-volume-settings">
+                        <button class="setting-btn" data-volume="0">オフ</button>
+                        <button class="setting-btn" data-volume="0.3">小</button>
+                        <button class="setting-btn" data-volume="0.7">中</button>
+                        <button class="setting-btn" data-volume="1">大</button>
+                    </div>
+                </div>
+                <div class="setting-control">
+                    <div class="setting-label">オートプレイ</div>
+                    <div class="setting-value" id="auto-play-settings">
+                        <button class="setting-btn" data-auto="off">オフ</button>
+                        <button class="setting-btn" data-auto="on">オン (3s)</button>
+                    </div>
+                </div>
+            </div>
+            <button class="menu-btn" id="back-to-game">ゲームに戻る</button>
+        </div>
+    </div>
+
+    <!-- User Message Area -->
+    <div id="message-area"></div>
+
+    <script>
+        // --- Game Scope ---
+        (function () { // IIFE Start
+
+            // --- Constants ---
+            const TEXT_SPEEDS = { slow: 100, normal: 50, fast: 20 };
+            const AUTO_PLAY_DELAY = 3000; // ms
+            const NUM_SAVE_SLOTS = 3;
+            const TRANSITION_DURATION = 500; // ms, should match CSS --transition-duration
+            const BACKGROUND_TRANSITION_DURATION = 1000; // ms, should match CSS --background-transition-duration
+            const MESSAGE_DISPLAY_TIME = 4000; // ms for user messages
+            const RESOURCE_LOAD_TIMEOUT = 10000; // ms for image/audio loading timeout
+
+            // --- Content Data ---
+            // NOTE: Character images are currently not preloaded. Consider preloading strategy for real assets.
+            const gameContent = {
+                assets: {
+                    backgrounds: {
+                        title: 'https://via.placeholder.com/1280x720/111122/FFFFFF?text=銀月の姫と獅子の傭兵',
+                        castle: 'https://via.placeholder.com/1280x720/334455/FFFFFF?text=ミラノア王国',
+                        north_tower: 'https://via.placeholder.com/1280x720/223344/FFFFFF?text=北塔',
+                        town: 'https://via.placeholder.com/1280x720/445566/FFFFFF?text=霧の十字路',
+                        forest: 'https://via.placeholder.com/1280x720/225533/FFFFFF?text=霧の森',
+                        mountain_path: 'https://via.placeholder.com/1280x720/555544/FFFFFF?text=山道',
+                        village: 'https://via.placeholder.com/1280x720/556677/FFFFFF?text=銀の滝',
+                        canyon: 'https://via.placeholder.com/1280x720/664433/FFFFFF?text=アストラルシズム入口',
+                        temple: 'https://via.placeholder.com/1280x720/334466/FFFFFF?text=古代神殿',
+                        epilogue: 'https://via.placeholder.com/1280x720/335577/FFFFFF?text=エピローグ'
+                    },
+                    characters: { // Character images are NOT preloaded by default in this version
+                        mariabell: {
+                            normal: 'https://via.placeholder.com/400x600/FFFFFF/333333?text=マリアベル',
+                            disguise: 'https://via.placeholder.com/400x600/FFFFFF/333333?text=マリアベル(男装)',
+                            magic: 'https://via.placeholder.com/400x600/FFFFFF/333333?text=マリアベル(魔力発動)'
+                        },
+                        ryan: {
+                            normal: 'https://via.placeholder.com/400x600/FFFFFF/333333?text=ライアン',
+                            battle: 'https://via.placeholder.com/400x600/FFFFFF/333333?text=ライアン(戦闘時)',
+                            wounded: 'https://via.placeholder.com/400x600/FFFFFF/333333?text=ライアン(負傷)'
+                        },
+                        sofia: 'https://via.placeholder.com/400x600/FFFFFF/333333?text=ソフィア',
+                        king: 'https://via.placeholder.com/400x600/FFFFFF/333333?text=ライナス国王',
+                        queen: 'https://via.placeholder.com/400x600/FFFFFF/333333?text=エレノア王妃',
+                        durant: 'https://via.placeholder.com/400x600/FFFFFF/333333?text=デュラント公爵',
+                        nora: 'https://via.placeholder.com/400x600/FFFFFF/333333?text=ノーラ'
+                    },
+                    bgm: {
+                        title: 'https://example.com/bgm/title.mp3', // Placeholder
+                        castle: 'https://example.com/bgm/castle.mp3', // Placeholder
+                        adventure: 'https://example.com/bgm/adventure.mp3', // Placeholder
+                        danger: 'https://example.com/bgm/danger.mp3', // Placeholder
+                        temple: 'https://example.com/bgm/temple.mp3', // Placeholder
+                        epilogue: 'https://example.com/bgm/epilogue.mp3' // Placeholder
+                    },
+                    sfx: {
+                        explosion: 'https://example.com/sfx/explosion.mp3', // Placeholder
+                        magic: 'https://example.com/sfx/magic.mp3', // Placeholder
+                        battle: 'https://example.com/sfx/battle.mp3', // Placeholder
+                        door: 'https://example.com/sfx/door.mp3', // Placeholder
+                        select: 'https://example.com/sfx/select.mp3' // Placeholder for UI sounds
+                    }
+                },
+                scenes: [
+                    // --- SCENE DATA START ---
+                    // (元のシーンデータは非常に長いため、ここでは省略します。内容は変更ありません)
+                    // { id: "title", ... },
+                    // { id: "chapter1_1", ... },
+                    // ... (all other scenes) ...
+                    // { id: "epilogue_2", ... }
+                     {
+                        id: "title",
+                        background: 'title',
+                        // bgm: 'title', // Title BGM handled separately if needed
+                        dialogs: [
+                            // Title screen doesn't usually have dialogs in this setup
+                        ],
+                        // Choices are handled by title screen buttons now
+                    },
+                    {
+                        id: "chapter1_1",
+                        background: 'north_tower',
+                        bgm: 'castle',
+                        sfx: 'explosion',
+                        dialogs: [
+                            { text: "第1章：「運命の交差点」", effect: "fade" },
+                            { text: "霧が立ち込めるミラノア王国の北塔、七階の石造りの一室で、またも小さな爆発音が響き渡った。" },
+                            { text: "窓からは整然と並ぶ市街地が見え、活気ある市場や清潔な通りが王国の安定ぶりを物語っていた。" },
+                            { sfx: 'door' },
+                            { character: 'sofia', speaker: "ソフィア", text: "姫様！大丈夫ですか？", effect: "type" },
+                            { text: "扉が勢いよく開かれ、侍女長のソフィア・ウィンドハートが煙の立ち込める室内に飛び込んできた。" },
+                            { character: 'mariabell.normal', speaker: "マリアベル", text: "大丈夫よ、ソフィア", effect: "type" },
+                            { text: "煙が晴れてくると、銀色の長い髪を持つ私、マリアベル・ルミエール王女の姿が現れた。" },
+                            { text: "少し焦げた裾のドレスを払いながら、不思議そうに自分の手のひらを見つめる。" },
+                            { text: "左手首にある「セレナリア」と呼ばれる青白く光るブレスレットが、まるで怒りを静めるように脈打っていた。" },
+                            { character: 'sofia', speaker: "ソフィア", text: "魔力が、また制御を振り切ったのね", effect: "type" },
+                            { text: "ソフィアは冷静に状況を判断し、窓を開けて煙を外に逃がした。" },
+                            { character: 'mariabell.normal', speaker: "マリアベル", text: "違うわ！魔力は完全に抑えようとしていたの。ただ、机が突然空を飛んだのよ！", effect: "type" },
+                            { text: "少し頬を膨らませながら反論する。この制御できない魔力に、いつも困らされているのだ。" }
+                        ],
+                        choices: [ { text: "続ける", nextScene: "chapter1_2" } ]
+                    },
+                     // ... other scenes from chapter1_2 to chapter5_6 ...
+                     {
+                        id: "chapter5_6",
+                        background: 'canyon', // アストラルシズム入口
+                        bgm: 'epilogue',
+                        dialogs: [
+                            { text: "数日後、アストラルシズムの入口で、私たちは再び立っていた。別れの時。" },
+                            { character: 'mariabell.normal', speaker: "マリアベル", text: "私、行かなきゃ", effect: "type" },
+                            { text: "足が動かない。" },
+                            { character: 'ryan.normal', speaker: "ライアン", text: "ああ", effect: "type" },
+                            { text: "彼も同じように動けずにいる。" },
+                            { character: 'mariabell.normal', speaker: "マリアベル", text: "あなたは…私にとって…", effect: "type" },
+                            { text: "言葉に詰まる。" },
+                            { character: 'ryan.normal', speaker: "ライアン", text: "言わなくていい。言葉にする必要はない", effect: "type" },
+                            { character: 'mariabell.normal', speaker: "マリアベル", text: "じゃあ、行ってくるわ。次に会ったとき、たくさんの物語を聞かせて", effect: "type" },
+                            { character: 'ryan.normal', speaker: "ライアン", text: "ああ。気をつけろよ", effect: "type" },
+                            { text: "彼の表情は、初めて会った時よりもずっと柔らかく、温かい。" },
+                            { text: "一歩、また一歩と彼から離れる。振り返ると、彼はまだそこに立っていた。" },
+                            { text: "彼の口が小さく動くのが見えた気がした。「待っている」と。風の音にかき消されたけれど、彼の気持ちは伝わってきた。" },
+                            { text: "胸の奥が温かくなり、前を向く力が湧いてくる。今は進むべき時。でも、この繋がりは決して途切れない。" },
+                            { text: "私は確かな足取りで歩き出した。" }
+                        ],
+                        choices: [ { text: "エピローグへ", nextScene: "epilogue_1" } ]
+                     },
+                     {
+                        id: "epilogue_1",
+                        background: 'epilogue', // Use epilogue background
+                        bgm: 'epilogue',
+                        dialogs: [
+                            { text: "エピローグ", effect: "fade" },
+                            { text: "一年後、アストラルシズムの入口。" },
+                            { text: "夕日に照らされた峡谷に、二つの影が伸びていた。私は約束通り、ここに戻ってきた。" },
+                            { character: 'mariabell.normal', speaker: "マリアベル", text: "待たせたわね。約束通り来たのよ", effect: "type" },
+                            { text: "彼はそこにいた。以前よりも穏やかな表情で。" },
+                            { character: 'ryan.normal', speaker: "ライアン", text: "ああ、おかえり", effect: "type" },
+                            { text: "一年の間に、私たちはそれぞれの道を歩み、成長してきた。" },
+                            { character: 'mariabell.normal', speaker: "マリアベル", text: "どんな旅だった？", effect: "type" },
+                            { character: 'ryan.normal', speaker: "ライアン", text: "様々だ。東の渓谷では断崖の上に建つ村を見た。月光に照らされた湖は、まるでおまえの髪のようだった", effect: "type" },
+                            { character: 'mariabell.normal', speaker: "マリアベル", text: "あなたが風景に例え事をするなんて、変わったのね", effect: "type" },
+                            { text: "彼は少し恥ずかしそうに視線を逸らした。" },
+                            { character: 'ryan.normal', speaker: "ライアン", text: "旅をしていると…見えるものも変わる。おまえは？特使としての任務は", effect: "type" },
+                            { character: 'mariabell.normal', speaker: "マリアベル", text: "うまくいったわ。ルミノア連合王国との間に、新たな協定を結ぶことができたの", effect: "type" },
+                            { character: 'ryan.normal', speaker: "ライアン", text: "そうか。おまえらしいな", effect: "type" },
+                            { text: "太陽が地平線に沈み始める。" }
+                        ],
+                        choices: [ { text: "続ける", nextScene: "epilogue_2" } ]
+                    },
+                    {
+                        id: "epilogue_2",
+                        background: 'epilogue', // Use epilogue background
+                        bgm: 'epilogue',
+                        dialogs: [
+                            { character: 'mariabell.normal', speaker: "マリアベル", text: "ねえ、私の護衛してくれない？ 近々、南方諸国への特使として派遣されるの", effect: "type" },
+                            { text: "少し照れくさかったけど、聞いてみた。" },
+                            { character: 'ryan.normal', speaker: "ライアン", text: "報酬次第だな", effect: "type" },
+                            { text: "彼は一瞬驚いたようだったけど、いつもの無愛想な顔に戻った。" },
+                            { character: 'mariabell.normal', speaker: "マリアベル", text: "もちろん、王国最高の待遇よ", effect: "type" },
+                            { text: "クスリと笑う。" },
+                            { character: 'ryan.normal', speaker: "ライアン", text: "…悪くない話だ", effect: "type" },
+                            { text: "彼の口元にかすかな笑みが浮かんでいる。" },
+                            { text: "私はゆっくりと彼に近づき、手を差し伸べた。彼はその手を取ってくれた。温かい絆を感じる。" },
+                            { text: "私たちは手を取り合ったまま、夕暮れの中を歩き始めた。道はまだ続いている。試練も困難も待っているだろう。でも、もう一人じゃない。" },
+                            { character: 'mariabell.normal', speaker: "マリアベル", text: "新しい冒険の始まりね", effect: "type" },
+                            { text: "夜空を見上げる。" },
+                            { character: 'ryan.normal', speaker: "ライアン", text: "ああ。新たな道、交わる未来へ", effect: "type" },
+                            { text: "彼は私の手をしっかりと握りしめた。" },
+                            { text: "私たちの物語は、これからも続いていく。" },
+                            { text: "--- 完 ---", effect: "fade" }
+                        ],
+                        choices: [
+                            { text: "タイトルへ", nextScene: "title" } // Loop back to title
+                        ]
+                    }
+                    // --- SCENE DATA END ---
+                ]
+            };
+
+            // ADD: Function to encode URLs in gameContent
+            function encodeGameAssetUrls(content) {
+                const encodeUrlTextParam = (url) => {
+                    if (!url || typeof url !== 'string') return url;
+                    const textParamIndex = url.indexOf('?text=');
+                    if (textParamIndex !== -1) {
+                        const baseUrl = url.substring(0, textParamIndex + 6); // Include '?text='
+                        const textValue = url.substring(textParamIndex + 6);
+                        try {
+                            return baseUrl + encodeURIComponent(textValue);
+                        } catch (e) {
+                            console.error(`Failed to encode URI component: ${textValue}`, e);
+                            return url; // Return original URL on error
+                        }
+                    }
+                    return url; // Return original URL if no text param
+                };
+
+                // Encode backgrounds
+                if (content.assets.backgrounds) {
+                    for (const key in content.assets.backgrounds) {
+                        content.assets.backgrounds[key] = encodeUrlTextParam(content.assets.backgrounds[key]);
+                    }
+                }
+
+                // Encode characters
+                if (content.assets.characters) {
+                    for (const charKey in content.assets.characters) {
+                        const charAsset = content.assets.characters[charKey];
+                        if (typeof charAsset === 'string') {
+                            content.assets.characters[charKey] = encodeUrlTextParam(charAsset);
+                        } else if (typeof charAsset === 'object' && charAsset !== null) {
+                            for (const poseKey in charAsset) {
+                                charAsset[poseKey] = encodeUrlTextParam(charAsset[poseKey]);
+                            }
+                        }
+                    }
+                }
+                // Note: Audio URLs usually don't contain query params like this,
+                // but add encoding here if necessary for your actual audio URLs.
+            }
+
+            // ADD: Immediately encode the URLs after defining gameContent
+            encodeGameAssetUrls(gameContent);
+
+            // --- Game State ---
+            const gameState = {
+                currentSceneId: null,
+                currentDialogIndex: 0,
+                isTyping: false,
+                typingTimeoutId: null, // Can be Timeout ID (number) or RAF ID (number)
+                isShowingChoices: false,
+                isMenuOpen: false,
+                settings: {
+                    textSpeed: 'normal',
+                    bgmVolume: 0.7,
+                    sfxVolume: 0.7,
+                    autoPlay: false
+                },
+                autoPlayTimerId: null,
+                isFirstInteraction: true, // Track first user interaction for audio unlock
+                isBackgroundTransitioning: false,
+                isTitleScreen: true, // Start on title screen
+                messageTimeoutId: null // For user message display timeout
+            };
+
+            // --- Resource Loader ---
+            const resourceLoader = {
+                cache: { images: {}, audio: {} },
+
+                async preloadResources() {
+                    // console.log("Starting resource preloading...");
+                    const promises = [];
+
+                    // Preload Backgrounds
+                    if (gameContent.assets.backgrounds) {
+                        Object.entries(gameContent.assets.backgrounds).forEach(([key, src]) => {
+                            if (src && !this.cache.images[src]) {
+                                promises.push(this.preloadImage(key, src).catch(err => {
+                                    console.warn(err); // Log warning on individual failure
+                                    return null; // Allow Promise.all to complete
+                                }));
+                            }
+                        });
+                    }
+
+                    // Preload BGM
+                    if (gameContent.assets.bgm) {
+                        Object.entries(gameContent.assets.bgm).forEach(([key, src]) => {
+                            if (src && !this.cache.audio[src]) {
+                                promises.push(this.preloadSingleAudio(key, src, 'bgm').catch(err => {
+                                    console.warn(err);
+                                    return null;
+                                }));
+                            }
+                        });
+                    }
+
+                    // Preload SFX
+                    if (gameContent.assets.sfx) {
+                        Object.entries(gameContent.assets.sfx).forEach(([key, src]) => {
+                            if (src && !this.cache.audio[src]) {
+                                promises.push(this.preloadSingleAudio(key, src, 'sfx').catch(err => {
+                                    console.warn(err);
+                                    return null;
+                                }));
+                            }
+                        });
+                    }
+                     // NOTE: Character image preloading is not included here.
+                     // Add similar logic if character preloading is desired.
+
+                    try {
+                        const results = await Promise.all(promises);
+                        const failedCount = results.filter(r => r === null).length;
+                        if (failedCount > 0) {
+                            console.warn(`${failedCount} resource(s) failed to preload.`);
+                            return false;
+                        }
+                        // console.log("Resource preloading completed successfully.");
+                        return true;
+                    } catch (error) {
+                        console.error("Resource preloading failed:", error);
+                        return false;
+                    }
+                },
+
+                preloadImage(key, src) {
+                    return new Promise((resolve, reject) => {
+                        if (!src) { reject(`Invalid src for image key: ${key}`); return; }
+                        if (this.cache.images[src]) { resolve(key); return; } // Already cached
+
+                        const img = new Image();
+                        let timeoutId = setTimeout(() => {
+                            img.onload = img.onerror = null; // Clean up listeners
+                            reject(`Timeout loading image: ${key} (${src})`);
+                        }, RESOURCE_LOAD_TIMEOUT);
+
+                        img.onload = () => {
+                            clearTimeout(timeoutId);
+                            this.cache.images[src] = img;
+                            resolve(key);
+                        };
+                        img.onerror = (err) => {
+                            clearTimeout(timeoutId);
+                            // Provide more error context if possible
+                            reject(`Failed to load image: ${key} (${src}) - Error: ${err?.type || 'Unknown'}`);
+                        };
+                        img.src = src;
+                    });
+                },
+
+                preloadSingleAudio(key, src, type) {
+                    return new Promise((resolve, reject) => {
+                        if (!src) { reject(`Invalid src for audio key: ${key} (${type})`); return; }
+                        if (this.cache.audio[src]) { resolve(key); return; } // Already cached
+
+                        const audio = new Audio();
+                        let timeoutId = setTimeout(() => {
+                            audio.oncanplaythrough = audio.onerror = null; // Clean up listeners
+                            reject(`Timeout loading audio (${type}): ${key} (${src})`);
+                        }, RESOURCE_LOAD_TIMEOUT);
+
+                        // Use 'canplaythrough' for better preloading indication
+                        audio.oncanplaythrough = () => {
+                            clearTimeout(timeoutId);
+                            this.cache.audio[src] = audio;
+                            resolve(key);
+                        };
+                        audio.onerror = (err) => {
+                            clearTimeout(timeoutId);
+                             // Provide more error context if possible
+                            const errorDetail = audio.error ? `Code: ${audio.error.code}, Message: ${audio.error.message}` : (err?.type || 'Unknown');
+                            reject(`Failed to load audio (${type}): ${key} (${src}) - Error: ${errorDetail}`);
+                        };
+
+                        audio.preload = 'auto'; // Hint browser to load
+                        audio.src = src;
+                        // audio.load(); // Calling load() might be redundant after setting src
+                    });
+                },
+
+                // Get image URL (not the Image object)
+                getImageSrc(key) {
+                    return gameContent.assets.backgrounds?.[key];
+                },
+
+                getAudioSrc(key, type = 'bgm') {
+                    return gameContent.assets[type]?.[key];
+                }
+            };
+
+            // --- Audio Manager ---
+            const audioManager = {
+                bgmAudio: null,
+                sfxPool: {}, // Pool to reuse Audio objects for SFX
+                activeBgmKey: null,
+
+                async init() {
+                    this.bgmAudio = new Audio();
+                    this.bgmAudio.loop = true;
+                    this.updateVolume();
+
+                    // Create SFX pools from preloaded/cached audio if available
+                    if (gameContent.assets.sfx) {
+                        for (const [key, src] of Object.entries(gameContent.assets.sfx)) {
+                            if (src) {
+                                const cachedAudio = resourceLoader.cache.audio[src];
+                                // Create a pool of 3, cloning if cached, otherwise creating new
+                                this.sfxPool[key] = Array(3).fill(null).map(() => {
+                                    const audio = cachedAudio ? cachedAudio.cloneNode() : new Audio(src);
+                                    audio.volume = gameState.settings.sfxVolume;
+                                    return audio;
+                                });
+                            }
+                        }
+                    }
+                    // console.log("Audio Manager Initialized");
+                },
+
+                // Attempt to unlock audio context on first interaction
+                ensureAudioResumed() {
+                    if (gameState.isFirstInteraction && (!this.bgmAudio || this.bgmAudio.paused)) {
+                        // console.log("Attempting to resume audio context...");
+                        // Create a dummy audio element and play it silently
+                        const silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+                        silentAudio.volume = 0;
+                        silentAudio.play().then(() => {
+                            // console.log("Audio context likely resumed.");
+                            gameState.isFirstInteraction = false; // Mark interaction happened
+                            // If BGM should be playing, try playing it now
+                            if (this.bgmAudio && this.bgmAudio.src && this.bgmAudio.paused && this.activeBgmKey) {
+                                this.bgmAudio.play().catch(e => console.warn("BGM play failed after context resume:", e));
+                            }
+                        }).catch(e => {
+                            console.warn("Silent audio play failed, context might still be locked:", e);
+                            // Still mark interaction happened to avoid repeated attempts
+                            gameState.isFirstInteraction = false;
+                        });
+                    } else if (gameState.isFirstInteraction) {
+                         // If audio was already playing or not needed, still mark interaction
+                        gameState.isFirstInteraction = false;
+                    }
+                },
+
+                playBGM(bgmKey) {
+                    this.ensureAudioResumed(); // Try to unlock audio first
+                    const src = resourceLoader.getAudioSrc(bgmKey, 'bgm');
+                    if (!src) {
+                        this.stopBGM(); // Stop if key is invalid or null
+                        console.warn(`BGM key "${bgmKey}" not found.`);
+                        return;
+                    }
+                    if (!this.bgmAudio) { console.warn("BGM Audio element not initialized."); return; }
+
+                    const requiresPlay = !this.bgmAudio.src || this.bgmAudio.src !== src || this.bgmAudio.paused;
+
+                    if (bgmKey !== this.activeBgmKey || requiresPlay) {
+                        // console.log(`Playing BGM: ${bgmKey}`);
+                        this.activeBgmKey = bgmKey;
+                        this.bgmAudio.volume = gameState.settings.bgmVolume; // Ensure volume is set
+                        if (this.bgmAudio.src !== src) {
+                            this.bgmAudio.src = src; // Change source only if different
+                        }
+                         // Always try to play if state requires it or src changed
+                         this.bgmAudio.play().catch(e => {
+                            // Log specific errors for debugging autoplay policy issues
+                             if (e.name === 'NotAllowedError') {
+                                 console.warn(`BGM playback for ${bgmKey} blocked by autoplay policy. Requires user interaction.`);
+                             } else {
+                                 console.warn(`BGM playback failed for ${bgmKey}:`, e.name, e.message);
+                             }
+                         });
+                    }
+                },
+
+                stopBGM() {
+                    if (this.bgmAudio && !this.bgmAudio.paused) {
+                        this.bgmAudio.pause();
+                        this.bgmAudio.currentTime = 0; // Reset position
+                        this.activeBgmKey = null;
+                        // console.log("Stopping BGM");
+                    }
+                },
+
+                playSFX(sfxKey) {
+                    this.ensureAudioResumed();
+                    const pool = this.sfxPool[sfxKey];
+
+                    if (!pool || pool.length === 0) {
+                        // Fallback: Try to play directly if pool doesn't exist (e.g., not preloaded)
+                        const src = resourceLoader.getAudioSrc(sfxKey, 'sfx');
+                        if (src) {
+                            console.warn(`SFX pool for "${sfxKey}" not found or empty, attempting direct play.`);
+                            try {
+                                const sfxAudio = new Audio(src);
+                                sfxAudio.volume = gameState.settings.sfxVolume;
+                                sfxAudio.play().catch(e => console.warn(`Direct SFX playback failed for ${sfxKey}:`, e));
+                            } catch (error) {
+                                console.error(`Error creating Audio for SFX: ${sfxKey}`, error);
+                            }
+                        } else {
+                            console.warn(`SFX source not found for key: ${sfxKey}`);
+                        }
+                        return;
+                    }
+
+                    // Find an available audio object in the pool
+                    const availableSfx = pool.find(audio => audio.paused || audio.ended);
+                    if (availableSfx) {
+                        availableSfx.currentTime = 0; // Reset position
+                        availableSfx.volume = gameState.settings.sfxVolume; // Ensure volume
+                        availableSfx.play().catch(e => console.warn(`SFX pool playback failed for ${sfxKey}:`, e));
+                    } else {
+                        // Optional: Could implement logic to stop the longest playing sound
+                        console.warn(`SFX pool for "${sfxKey}" is full, sound dropped.`);
+                    }
+                },
+
+                updateVolume() {
+                    const bgmVol = gameState.settings.bgmVolume;
+                    const sfxVol = gameState.settings.sfxVolume;
+                    if (this.bgmAudio) { this.bgmAudio.volume = bgmVol; }
+                    Object.values(this.sfxPool).forEach(pool => {
+                        pool.forEach(audio => { if (audio) audio.volume = sfxVol; });
+                    });
+                }
+            };
+
+
+            // --- Save/Load Manager ---
+            const saveManager = {
+                saveCache: {}, // In-memory cache of save data
+
+                initCache() {
+                    for (let i = 1; i <= NUM_SAVE_SLOTS; i++) {
+                        try {
+                            const data = localStorage.getItem(`save_${i}`);
+                            this.saveCache[i] = data ? JSON.parse(data) : null;
+                        } catch (e) {
+                            console.error(`Error loading/parsing save slot ${i} from localStorage:`, e);
+                            this.saveCache[i] = null;
+                            // Optionally clear corrupted data
+                            localStorage.removeItem(`save_${i}`);
+                        }
+                    }
+                    // console.log("Save cache initialized:", this.saveCache);
+                },
+
+                save(slot) {
+                    // Prevent saving during critical transitions or UI states
+                    if (gameState.isTyping || gameState.isShowingChoices || gameState.isBackgroundTransitioning || gameState.isMenuOpen) {
+                        showUserMessage("テキスト表示中、選択肢表示中、背景切り替え中、またはメニュー表示中はセーブできません。", "warning");
+                        return false;
+                    }
+                     if (gameState.isTitleScreen) {
+                        showUserMessage("タイトル画面ではセーブできません。", "warning");
+                        return false;
+                     }
+                     if (!gameState.currentSceneId) {
+                         showUserMessage("セーブ可能なシーンではありません。", "warning");
+                         return false;
+                     }
+
+                    const saveData = {
+                        sceneId: gameState.currentSceneId,
+                        dialogIndex: gameState.currentDialogIndex,
+                        settings: gameState.settings, // Save current settings
+                        timestamp: new Date().toISOString()
+                    };
+
+                    try {
+                        const dataString = JSON.stringify(saveData);
+                        localStorage.setItem(`save_${slot}`, dataString);
+                        this.saveCache[slot] = saveData; // Update cache
+                        console.log(`Game saved to slot ${slot}`);
+                        updateSlotUI(slot); // Update UI for this specific slot
+                        showUserMessage(`スロット ${slot} にセーブしました。`, "info");
+                        return true;
+                    } catch (e) {
+                        console.error('Failed to save game to localStorage:', e);
+                        const message = e.name === 'QuotaExceededError'
+                            ? "セーブ失敗: ブラウザのストレージ容量がいっぱいです。"
+                            : `セーブ失敗: エラーが発生しました (${e.name})。`;
+                        showUserMessage(message, "error");
+                        return false;
+                    }
+                },
+
+                // Load game state from a slot
+                // onSuccessCallback is executed *after* the scene starts loading
+                load(slot, onSuccessCallback) {
+                    clearAutoPlayTimer(); // Stop auto play immediately
+                    const saveData = this.saveCache[slot];
+
+                    if (!saveData) {
+                        showUserMessage(`スロット ${slot} にはセーブデータがありません。`, "warning");
+                        return false;
+                    }
+
+                    try {
+                        // Validate scene existence
+                        const sceneExists = gameContent.scenes.find(s => s.id === saveData.sceneId);
+                        if (!sceneExists) {
+                            throw new Error(`保存されたシーンID (${saveData.sceneId}) が現在のゲームデータに見つかりません。`);
+                        }
+                        // Validate dialog index (basic check)
+                        if (saveData.dialogIndex < 0 || (sceneExists.dialogs && saveData.dialogIndex > sceneExists.dialogs.length)) {
+                            console.warn(`Invalid dialog index (${saveData.dialogIndex}) in save data for scene ${saveData.sceneId}. Resetting to 0.`);
+                            saveData.dialogIndex = 0; // Reset to start of scene if index is invalid
+                        }
+
+
+                        // Restore settings *before* loading scene
+                        // Merge saved settings with defaults to handle missing properties
+                        updateGameState({ settings: { ...gameState.settings, ...(saveData.settings || {}) } });
+                        updateSettingsUI(); // Apply settings to UI
+                        audioManager.updateVolume(); // Apply volume settings
+
+                        // Load scene and dialog state
+                        // loadScene handles transitions, BGM, etc.
+                        loadScene(saveData.sceneId, saveData.dialogIndex);
+                        console.log(`Game loaded from slot ${slot}`);
+
+                        // Execute the success callback (e.g., close menu, hide title screen)
+                        if (typeof onSuccessCallback === 'function') {
+                            onSuccessCallback();
+                        }
+
+                        showUserMessage(`スロット ${slot} からロードしました。`, "info");
+                        return true;
+
+                    } catch (e) {
+                        console.error('Failed to load game state:', e);
+                        showUserMessage(`ロード処理中にエラーが発生しました: ${e.message}`, "error");
+                        // Potentially revert to a safe state (e.g., title screen) on critical error
+                        // updateGameState({ isTitleScreen: true });
+                        return false;
+                    }
+                },
+
+                // Get data for a specific slot (or indicates empty)
+                getSaveData(slot) {
+                    const cached = this.saveCache[slot];
+                    return cached ? { ...cached, slot, isEmpty: false } : { slot, isEmpty: true };
+                },
+
+                // Get data for all slots
+                getAllSaveData() {
+                    return Array.from({ length: NUM_SAVE_SLOTS }, (_, i) => this.getSaveData(i + 1));
+                }
+            };
+
+            // --- DOM Elements Cache ---
+            // Cache frequently accessed DOM elements
+            const elements = {
+                loading: document.getElementById('loading'),
+                titleScreen: document.getElementById('title-screen'),
+                startButton: document.getElementById('start-button'),
+                loadButton: document.getElementById('load-button'),
+                quitButton: document.getElementById('quit-button'),
+                titleLoadSlotsContainer: document.getElementById('title-load-slots'),
+                titleLoadBackButton: document.getElementById('title-load-back-button'),
+                game: document.getElementById('game'),
+                background: document.getElementById('background'),
+                dialogBox: document.getElementById('dialog-box'),
+                speaker: document.getElementById('speaker'),
+                text: document.getElementById('text'),
+                nextIndicator: document.getElementById('next-indicator'),
+                choices: document.getElementById('choices'),
+                menuButton: document.getElementById('menu-button'),
+                menu: document.getElementById('menu'),
+                saveSlotsContainer: document.getElementById('save-slots'),
+                loadSlotsContainer: document.getElementById('load-slots'),
+                settingsSection: document.getElementById('settings-section'),
+                textSpeedSettings: document.getElementById('text-speed-settings'),
+                bgmVolumeSettings: document.getElementById('bgm-volume-settings'),
+                sfxVolumeSettings: document.getElementById('sfx-volume-settings'),
+                autoPlaySettings: document.getElementById('auto-play-settings'),
+                backToGame: document.getElementById('back-to-game'),
+                messageArea: document.getElementById('message-area')
+            };
+
+            // --- Utility Functions ---
+            // Debounce and Throttle are not used in the current logic, but kept for potential future use.
+            // function debounce(func, wait) { ... }
+            // function throttle(func, limit) { ... }
+
+            // Display user messages (info, warning, error)
+            function showUserMessage(message, type = "info", duration = MESSAGE_DISPLAY_TIME) {
+                if (!elements.messageArea) { console.warn("Message area element not found."); return; }
+
+                // Clear previous timeout if a message is already showing
+                if (gameState.messageTimeoutId) {
+                    clearTimeout(gameState.messageTimeoutId);
+                    gameState.messageTimeoutId = null; // Reset timeout ID
+                }
+
+                elements.messageArea.textContent = message;
+                // Set class based on type, always include 'visible'
+                elements.messageArea.className = `message ${type} visible`;
+
+                // Hide message after duration
+                gameState.messageTimeoutId = setTimeout(() => {
+                    elements.messageArea.classList.remove('visible');
+                    // Optional: Clean up class name after transition for better state management
+                    const cleanup = () => {
+                        if (!elements.messageArea.classList.contains('visible')) {
+                             elements.messageArea.className = 'message'; // Remove type class too
+                             elements.messageArea.removeEventListener('transitionend', cleanup);
+                        }
+                    };
+                    elements.messageArea.addEventListener('transitionend', cleanup);
+                    gameState.messageTimeoutId = null; // Clear timeout ID
+                }, duration);
+            }
+
+            // Optimized scrolling for text area
+            function optimizedScroll(element) {
+                // Check if scrolling is necessary
+                if (element && element.scrollHeight > element.clientHeight) {
+                    // Use requestAnimationFrame for smooth scrolling updates
+                    requestAnimationFrame(() => {
+                        // Double-check inside rAF in case content changed rapidly
+                        if (element.scrollHeight > element.clientHeight) {
+                            // Prefer smooth scrolling if supported
+                            if ('scrollBehavior' in document.documentElement.style) {
+                                element.scrollTo({ top: element.scrollHeight, behavior: 'smooth' });
+                            } else {
+                                element.scrollTop = element.scrollHeight; // Fallback
+                            }
+                        }
+                    });
+                }
+            }
+
+             // Safely sanitize text for inserting into innerHTML
+            function sanitizeText(str) {
+                 if (typeof str !== 'string') return '';
+                 // Basic sanitization: escape HTML special chars and convert newlines
+                 return str.replace(/&/g, '&amp;')
+                           .replace(/</g, '&lt;')
+                           .replace(/>/g, '&gt;')
+                           .replace(/"/g, '&quot;')
+                           .replace(/'/g, '&#039;')
+                           .replace(/\n/g, '<br>'); // Convert newlines to <br>
+            }
+
+            // --- Core Game Logic ---
+            // Update game state and handle side effects
+            function updateGameState(updates) {
+                const prevState = { ...gameState }; // Keep previous state for comparison
+                Object.assign(gameState, updates); // Apply updates
+
+                // --- Handle State Change Side Effects ---
+                // Typing state change
+                if (prevState.isTyping !== gameState.isTyping) {
+                    if (!gameState.isTyping && !gameState.isShowingChoices && !gameState.isBackgroundTransitioning && !gameState.isTitleScreen && !gameState.isMenuOpen) {
+                        elements.nextIndicator.style.display = 'block';
+                        setupAutoPlayTimer(); // Setup timer if typing finished and conditions met
+                    } else {
+                        elements.nextIndicator.style.display = 'none';
+                        clearAutoPlayTimer(); // Clear timer if typing started or other blocking state active
+                    }
+                }
+
+                // AutoPlay setting change
+                if (prevState.settings.autoPlay !== gameState.settings.autoPlay) {
+                     if (gameState.settings.autoPlay) {
+                         // Only start timer if appropriate
+                         if (!gameState.isTyping && !gameState.isShowingChoices && !gameState.isBackgroundTransitioning && !gameState.isTitleScreen && !gameState.isMenuOpen) {
+                             setupAutoPlayTimer();
+                         }
+                     } else {
+                         clearAutoPlayTimer(); // Stop timer if turned off
+                     }
+                 }
+
+
+                // Title Screen visibility change
+                if (prevState.isTitleScreen !== gameState.isTitleScreen) {
+                    if (gameState.isTitleScreen) {
+                        showTitleScreen(); // Show title screen UI
+                    } else {
+                        hideTitleScreen(); // Hide title screen UI
+                    }
+                }
+
+                // Menu open/close state change (handled by open/closeMenu functions)
+
+                // Add other state change handlers here if needed
+            }
+
+
+            // Save current settings to localStorage
+            function saveSettings() {
+                try {
+                    localStorage.setItem('gameSettings', JSON.stringify(gameState.settings));
+                } catch (e) {
+                    console.warn("Could not save settings to localStorage:", e);
+                     // Optionally inform user if saving fails
+                     // showUserMessage("設定の保存に失敗しました。", "warning");
+                }
+            }
+
+            // Cleanup potential timers or listeners before loading a new scene
+            function cleanupScene() {
+                clearAutoPlayTimer();
+                if (gameState.typingTimeoutId) {
+                    if (typeof gameState.typingTimeoutId === 'number' && gameState.typingTimeoutId > 1000) { // Heuristic for setTimeout ID
+                        clearTimeout(gameState.typingTimeoutId);
+                    } else { // Assume requestAnimationFrame ID
+                        cancelAnimationFrame(gameState.typingTimeoutId);
+                    }
+                    gameState.typingTimeoutId = null;
+                }
+
+                 // FIX: More robust transition listener cleanup (example)
+                 // Remove *specific* listeners if they were stored, or use {once: true}
+                 // The _transitionEndListeners approach is kept for now, but review if issues arise.
+                 const transitionListeners = elements.background._transitionEndListeners || [];
+                 transitionListeners.forEach(listener => {
+                     elements.background.removeEventListener('transitionend', listener);
+                 });
+                 elements.background._transitionEndListeners = []; // Clear the stored listeners
+                 elements.background.classList.remove('fade'); // Ensure fade class is removed if transition was interrupted
+                 gameState.isBackgroundTransitioning = false; // Reset transition state
+            }
+
+            // Load and display a specific scene
+            function loadScene(sceneId, startDialogIndex = 0) {
+                // console.log(`Loading scene: ${sceneId}, start dialog: ${startDialogIndex}`);
+                if (gameState.isBackgroundTransitioning) {
+                    console.warn("Attempted to load scene during background transition. Aborting.");
+                    return;
+                }
+                cleanupScene(); // Clean up previous scene state (timers, listeners)
+
+                const scene = gameContent.scenes.find(s => s.id === sceneId);
+                if (!scene) {
+                    console.error(`Scene with id "${sceneId}" not found!`);
+                    showUserMessage(`エラー：シーン「${sceneId}」が見つかりません。タイトルに戻ります。`, "error", 6000);
+                    updateGameState({ isTitleScreen: true, currentSceneId: null, currentDialogIndex: 0 }); // Go to title screen
+                    return;
+                }
+
+                // Ensure game container is visible if coming from title
+                if (!elements.game.classList.contains('visible')) {
+                    elements.game.classList.add('visible');
+                }
+
+                // Update core game state
+                updateGameState({
+                    currentSceneId: sceneId,
+                    currentDialogIndex: startDialogIndex,
+                    isShowingChoices: false,
+                    isTyping: false,
+                    isMenuOpen: false // Ensure menu is closed when loading a scene
+                });
+
+                // Reset UI elements for the new scene
+                elements.choices.innerHTML = ''; // Clear old choices
+                elements.choices.style.display = 'none';
+                elements.nextIndicator.style.display = 'none';
+                elements.speaker.textContent = ''; // Clear speaker immediately
+                elements.text.innerHTML = ''; // Clear text immediately
+
+                // --- Update Background ---
+                const newBgKey = scene.background;
+                const newBgSrc = newBgKey ? resourceLoader.getImageSrc(newBgKey) : null;
+                const currentBgStyle = elements.background.style.backgroundImage;
+                // Extract URL carefully, handling potential quotes
+                const currentBgUrlMatch = currentBgStyle.match(/url\(['"]?(.*?)['"]?\)/);
+                const currentBgUrl = currentBgUrlMatch ? currentBgUrlMatch[1] : null;
+
+                if (newBgSrc !== currentBgUrl) {
+                    // console.log(`Changing background from ${currentBgUrl} to ${newBgSrc}`);
+                    gameState.isBackgroundTransitioning = true;
+                    elements.background.classList.add('fade'); // Start fade out
+
+                    // Use a stored reference for the event listener for easy removal
+                    const handleTransitionEnd = (event) => {
+                        // Ensure the event is for the opacity property and the element still has the 'fade' class
+                        if (event.target === elements.background && event.propertyName === 'opacity' && elements.background.classList.contains('fade')) {
+                            elements.background.removeEventListener('transitionend', handleTransitionEnd); // Remove this listener
+                            elements.background._transitionEndListeners = elements.background._transitionEndListeners?.filter(l => l !== handleTransitionEnd); // Also remove from custom array if used
+
+                            // Update background image source *after* fade out
+                            elements.background.style.backgroundImage = newBgSrc ? `url('${newBgSrc}')` : 'none';
+                            // Set background color only if no image
+                            elements.background.style.backgroundColor = newBgSrc ? '' : 'var(--main-bg-color)';
+
+                            // Force reflow/repaint before removing fade class (sometimes needed)
+                            void elements.background.offsetWidth;
+
+                            elements.background.classList.remove('fade'); // Start fade in
+
+                            // Listen for fade-in completion
+                            const handleFadeInEnd = (e) => {
+                                if (e.target === elements.background && e.propertyName === 'opacity') {
+                                    elements.background.removeEventListener('transitionend', handleFadeInEnd);
+                                    elements.background._transitionEndListeners = elements.background._transitionEndListeners?.filter(l => l !== handleFadeInEnd);
+
+                                    gameState.isBackgroundTransitioning = false;
+                                    // console.log("Background transition finished.");
+                                    // Resume auto-play or other logic if needed after transition
+                                    if (gameState.settings.autoPlay) setupAutoPlayTimer();
+                                }
+                            };
+                             // Store and add the fade-in listener
+                             elements.background._transitionEndListeners = elements.background._transitionEndListeners || [];
+                             elements.background._transitionEndListeners.push(handleFadeInEnd);
+                            elements.background.addEventListener('transitionend', handleFadeInEnd);
+                        }
+                    };
+                     // Store and add the fade-out listener
+                     elements.background._transitionEndListeners = elements.background._transitionEndListeners || [];
+                     elements.background._transitionEndListeners.push(handleTransitionEnd);
+                    elements.background.addEventListener('transitionend', handleTransitionEnd);
+
+                    // Safety timeout in case transitionend doesn't fire
+                     setTimeout(() => {
+                         if (gameState.isBackgroundTransitioning) {
+                             console.warn("Background transition timeout. Forcing state update.");
+                              elements.background.removeEventListener('transitionend', handleTransitionEnd);
+                              elements.background.removeEventListener('transitionend', elements.background._transitionEndListeners?.pop()); // Try removing last added listener
+                              elements.background.classList.remove('fade');
+                              elements.background.style.backgroundImage = newBgSrc ? `url('${newBgSrc}')` : 'none';
+                              elements.background.style.backgroundColor = newBgSrc ? '' : 'var(--main-bg-color)';
+                              gameState.isBackgroundTransitioning = false;
+                              if (gameState.settings.autoPlay) setupAutoPlayTimer();
+                         }
+                     }, BACKGROUND_TRANSITION_DURATION + 200); // Slightly longer than CSS duration
+
+                } else {
+                    // console.log("Background is the same, skipping transition.");
+                    gameState.isBackgroundTransitioning = false; // No transition needed
+                }
+
+                // --- Update BGM ---
+                if (scene.bgm) { audioManager.playBGM(scene.bgm); }
+                else { audioManager.stopBGM(); } // Stop BGM if scene doesn't specify one
+
+                // Play SFX if specified at the start of the scene
+                if (scene.sfx) { audioManager.playSFX(scene.sfx); }
+
+                // Prefetch resources for potential next scenes (non-blocking)
+                prefetchNextScenes(scene);
+
+                // Start displaying the first dialog of the scene
+                displayDialog();
+            }
+
+            // Prefetch resources for potential next scenes (non-blocking)
+            function prefetchNextScenes(currentScene) {
+                if (!currentScene?.choices?.length) return;
+
+                // Get unique next scene IDs
+                const nextSceneIds = [...new Set(currentScene.choices.map(choice => choice.nextScene).filter(Boolean))];
+                if (!nextSceneIds.length) return;
+
+                // console.log(`Prefetching assets for potential next scenes: ${nextSceneIds.join(', ')}`);
+                nextSceneIds.forEach(sceneId => {
+                    const scene = gameContent.scenes.find(s => s.id === sceneId);
+                    if (!scene) return;
+
+                    // Prefetch background image
+                    if (scene.background) {
+                         const bgSrc = resourceLoader.getImageSrc(scene.background);
+                         if (bgSrc) {
+                             resourceLoader.preloadImage(scene.background, bgSrc)
+                                 .catch(err => console.warn(`Prefetch failed for background ${scene.background}:`, err));
+                         }
+                    }
+                    // Prefetch BGM (Audio preloading is generally done at init, but can add specific prefetch here if needed)
+                    if (scene.bgm) {
+                         const bgmSrc = resourceLoader.getAudioSrc(scene.bgm, 'bgm');
+                         if (bgmSrc) {
+                             resourceLoader.preloadSingleAudio(scene.bgm, bgmSrc, 'bgm')
+                                 .catch(err => console.warn(`Prefetch failed for BGM ${scene.bgm}:`, err));
+                         }
+                    }
+                    // Prefetch Character images (if implementing character preloading)
+                    // ... logic to extract character assets from next scene's dialogs and preload ...
+                });
+            }
+
+            // Display the current dialog based on gameState
+            function displayDialog() {
+                // Don't display if title screen or menu is active
+                if (gameState.isTitleScreen || gameState.isMenuOpen) return;
+
+                const scene = gameContent.scenes.find(s => s.id === gameState.currentSceneId);
+                // Validate scene and dialog index
+                if (!scene || !scene.dialogs || gameState.currentDialogIndex < 0 || gameState.currentDialogIndex >= scene.dialogs.length) {
+                    console.error(`Invalid state for displaying dialog: Scene ${gameState.currentSceneId}, Dialog Index ${gameState.currentDialogIndex}`);
+                    // Attempt to show choices if they exist, otherwise fallback
+                    showChoices(scene?.choices);
+                    if (!scene?.choices?.length) {
+                        showUserMessage("ダイアログエラーが発生しました。タイトルに戻ります。", "error", 6000);
+                        updateGameState({ isTitleScreen: true });
+                    }
+                    return;
+                }
+                const dialog = scene.dialogs[gameState.currentDialogIndex];
+                if (!dialog) {
+                     console.error(`Dialog data missing at index ${gameState.currentDialogIndex} for scene ${gameState.currentSceneId}`);
+                     showChoices(scene.choices); // Attempt to show choices
+                      if (!scene?.choices?.length) {
+                          showUserMessage("ダイアログエラー。タイトルに戻ります。", "error", 6000);
+                          updateGameState({ isTitleScreen: true });
+                      }
+                     return;
+                }
+
+                // Stop any ongoing typing animation/timer
+                if (gameState.typingTimeoutId) {
+                    if (typeof gameState.typingTimeoutId === 'number' && gameState.typingTimeoutId > 1000) clearTimeout(gameState.typingTimeoutId);
+                    else cancelAnimationFrame(gameState.typingTimeoutId);
+                    gameState.typingTimeoutId = null;
+                }
+                 // Ensure typing state is false before starting new display
+                updateGameState({ isTyping: false });
+
+                // Update speaker and clear text area
+                elements.speaker.textContent = dialog.speaker || '';
+                elements.text.innerHTML = '';
+                elements.text.classList.remove('text-fade-in'); // Remove fade class if present
+                elements.nextIndicator.style.display = 'none'; // Hide indicator while preparing text
+
+                // Play dialog-specific SFX if any
+                if (dialog.sfx) {
+                     audioManager.playSFX(dialog.sfx);
+                }
+                 // Update character graphic if specified (implementation depends on how characters are displayed)
+                 // Example: updateCharacterSprite(dialog.character);
+
+
+                const textToDisplay = dialog.text || "";
+                const effect = dialog.effect;
+                const textSpeedMs = TEXT_SPEEDS[gameState.settings.textSpeed] || TEXT_SPEEDS.normal;
+                const sanitizedFullText = sanitizeText(textToDisplay); // Sanitize the text
+
+                // --- Apply Text Effect ---
+                if (effect === 'type' && textSpeedMs > 0 && textToDisplay.length > 0) {
+                    updateGameState({ isTyping: true }); // Set typing state
+                    let charIndex = 0;
+                    let startTime = performance.now();
+                    let rafId;
+
+                    const typeCharacter = (timestamp) => {
+                        if (!gameState.isTyping) { // Stop if state changed (e.g., user clicked)
+                            cancelAnimationFrame(rafId);
+                            return;
+                        }
+
+                        const elapsed = timestamp - startTime;
+                        // Calculate how many characters should be visible based on time and speed
+                        const targetIndex = Math.min(Math.floor(elapsed / textSpeedMs), textToDisplay.length);
+
+                        // Update DOM only if index changed
+                        if (targetIndex > charIndex) {
+                             // Use substring of the *original* text, then sanitize for display
+                             elements.text.innerHTML = sanitizeText(textToDisplay.substring(0, targetIndex));
+                             optimizedScroll(elements.text); // Scroll if needed
+                             charIndex = targetIndex;
+                        }
+
+                        // Continue animation if not finished
+                        if (charIndex < textToDisplay.length) {
+                            rafId = requestAnimationFrame(typeCharacter);
+                            gameState.typingTimeoutId = rafId; // Store RAF ID
+                        } else {
+                            finishDialogDisplay(); // Text finished typing
+                        }
+                    };
+                    rafId = requestAnimationFrame(typeCharacter); // Start animation
+                    gameState.typingTimeoutId = rafId; // Store initial RAF ID
+
+                } else if (effect === 'fade') {
+                    elements.text.innerHTML = sanitizedFullText; // Set full text
+                    elements.text.classList.add('text-fade-in'); // Add fade class
+                    updateGameState({ isTyping: true }); // Mark as "typing" during fade
+                    const timeoutId = setTimeout(() => {
+                        // Check if this specific timeout is still the active one
+                        if (gameState.typingTimeoutId === timeoutId) {
+                            finishDialogDisplay(); // Finish after transition duration
+                        }
+                    }, TRANSITION_DURATION);
+                    gameState.typingTimeoutId = timeoutId; // Store Timeout ID
+                } else {
+                    // No effect or instant display
+                    elements.text.innerHTML = sanitizedFullText; // Set full text instantly
+                    finishDialogDisplay(); // Finish immediately
+                }
+            }
+
+
+            // Called when dialog text display (typing/fade) is complete
+            function finishDialogDisplay() {
+                 // Clear any active timer/animation frame
+                 if (gameState.typingTimeoutId) {
+                     if (typeof gameState.typingTimeoutId === 'number' && gameState.typingTimeoutId > 1000) clearTimeout(gameState.typingTimeoutId);
+                     else cancelAnimationFrame(gameState.typingTimeoutId);
+                     gameState.typingTimeoutId = null;
+                 }
+
+                 // Update state only if currently in game context
+                 if (!gameState.isTitleScreen && !gameState.isMenuOpen) {
+                     updateGameState({ isTyping: false }); // This will trigger indicator display and auto-play setup via side effects
+                     // Explicitly scroll one last time to ensure fully visible
+                     optimizedScroll(elements.text);
+                 } else {
+                     // If title/menu is open, just clear the state without side effects
+                     gameState.isTyping = false;
+                     gameState.typingTimeoutId = null;
+                     elements.nextIndicator.style.display = 'none'; // Ensure indicator is hidden
+                 }
+            }
+
+            // Instantly complete the text animation if user interacts
+            function completeTextAnimation() {
+                if (!gameState.isTyping) return; // Only act if typing
+                // console.log("Completing text animation.");
+
+                 // Clear timer/animation frame
+                 if (gameState.typingTimeoutId) {
+                    if (typeof gameState.typingTimeoutId === 'number' && gameState.typingTimeoutId > 1000) clearTimeout(gameState.typingTimeoutId);
+                     else cancelAnimationFrame(gameState.typingTimeoutId);
+                     gameState.typingTimeoutId = null;
+                 }
+
+                 // Remove fade effect class if present
+                 elements.text.classList.remove('text-fade-in');
+
+                 // Set the full text content
+                 const scene = gameContent.scenes.find(s => s.id === gameState.currentSceneId);
+                 if (scene && scene.dialogs && scene.dialogs[gameState.currentDialogIndex]) {
+                     const dialog = scene.dialogs[gameState.currentDialogIndex];
+                     elements.text.innerHTML = sanitizeText(dialog.text || "");
+                     optimizedScroll(elements.text); // Ensure scrolled to bottom
+                 }
+
+                 // Mark display as finished (triggers indicator/auto-play via finishDialogDisplay)
+                 finishDialogDisplay();
+            }
+
+
+            // Advance to the next dialog or show choices
+            function advanceDialog() {
+                clearAutoPlayTimer(); // Stop auto-play when manually advancing
+                const scene = gameContent.scenes.find(s => s.id === gameState.currentSceneId);
+                if (!scene) {
+                    console.error("Cannot advance dialog: Current scene not found.");
+                    updateGameState({ isTitleScreen: true }); // Fallback to title
+                    return;
+                 }
+
+                const nextDialogIndex = gameState.currentDialogIndex + 1;
+
+                // Check if end of dialogs for this scene
+                if (!scene.dialogs || nextDialogIndex >= scene.dialogs.length) {
+                    // End of dialogs, check for choices
+                    if (scene.choices && scene.choices.length > 0) {
+                        updateGameState({ currentDialogIndex: nextDialogIndex }); // Store index past the last dialog
+                        showChoices(scene.choices);
+                    } else {
+                        // No more dialogs and no choices - potentially end of game or chapter
+                        console.warn(`Scene ${scene.id} ended without choices. Going back to title.`);
+                        showUserMessage("シーンが終了しました。", "info");
+                         // Decide fallback: Go to title? Go to a specific "End" scene?
+                         // Safer to go to title to avoid loops.
+                        updateGameState({ isTitleScreen: true });
+                    }
+                } else {
+                    // More dialogs exist, advance index and display
+                    updateGameState({ currentDialogIndex: nextDialogIndex });
+                    displayDialog();
+                }
+            }
+
+            // FIX: Refactored showChoices function
+            function showChoices(choicesData) {
+                 // Provide a default fallback if choicesData is invalid or empty
+                 if (!choicesData || !Array.isArray(choicesData) || choicesData.length === 0) {
+                     console.warn("showChoices called with invalid or empty data. Adding fallback to title.");
+                     choicesData = [{ text: "タイトルに戻る", nextScene: "title" }];
+                 }
+
+                 const fragment = document.createDocumentFragment();
+                 const existingButtons = Array.from(elements.choices.querySelectorAll('.choice'));
+                 let buttonIndex = 0;
+
+                 choicesData.forEach(choiceData => {
+                     // Basic validation for each choice item
+                     if (!choiceData || typeof choiceData.text !== 'string' || typeof choiceData.nextScene !== 'string') {
+                         console.warn("Skipping invalid choice data item:", choiceData);
+                         return; // Skip this invalid choice
+                     }
+
+                     let choiceButton;
+                     // Reuse existing button if available
+                     if (buttonIndex < existingButtons.length) {
+                         choiceButton = existingButtons[buttonIndex];
+                         choiceButton.textContent = choiceData.text;
+                         // Remove previous listener before adding new one
+                         const newButton = choiceButton.cloneNode(true); // Clone to remove listeners easily
+                         newButton.onclick = () => selectChoice(choiceData.nextScene);
+                         choiceButton.parentNode.replaceChild(newButton, choiceButton); // Replace in DOM
+                         choiceButton = newButton; // Update reference
+                         choiceButton.style.display = 'block'; // Ensure it's visible
+                     } else {
+                         // Create a new button if needed
+                         choiceButton = document.createElement('button');
+                         choiceButton.className = 'choice';
+                         choiceButton.textContent = choiceData.text;
+                         choiceButton.onclick = () => selectChoice(choiceData.nextScene);
+                         fragment.appendChild(choiceButton); // Add to fragment
+                     }
+                     buttonIndex++;
+                 });
+
+                 // Hide any remaining unused existing buttons
+                 for (let i = buttonIndex; i < existingButtons.length; i++) {
+                     existingButtons[i].style.display = 'none';
+                 }
+
+                 // Append newly created buttons (if any) from the fragment
+                 if (fragment.childNodes.length > 0) {
+                     elements.choices.appendChild(fragment);
+                 }
+
+                 // Show the choices container and update game state
+                 elements.choices.style.display = 'flex';
+                 elements.nextIndicator.style.display = 'none'; // Hide next indicator
+                 updateGameState({ isShowingChoices: true });
+                 clearAutoPlayTimer(); // Stop auto-play when choices appear
+            }
+
+            // REMOVE: Unused helper functions for choices (logic moved into showChoices)
+            // function createChoiceButton(choiceData) { /* ... */ }
+            // function updateChoiceButton(button, choiceData) { /* ... */ }
+
+
+            // Handle player selecting a choice
+            function selectChoice(nextSceneId) {
+                // console.log(`Choice selected, next scene ID: ${nextSceneId}`);
+                audioManager.playSFX('select'); // Play selection sound
+
+                // Special case: "title" scene ID always returns to title screen
+                if (nextSceneId === "title") {
+                    updateGameState({ isTitleScreen: true });
+                    // audioManager.stopBGM(); // Optionally stop BGM
+                    return;
+                }
+
+                 // Special case: "load" pseudo-scene ID (if used in content) could trigger load menu
+                 if (nextSceneId === "load") {
+                     // This was likely intended for the title screen button, handle appropriately
+                     // Maybe open the menu to the load section?
+                     console.warn("Choice 'load' selected in-game, behavior undefined. Opening menu.");
+                     openMenu(); // Open menu as a fallback
+                     // Or navigate directly to load section if menu structure allows
+                     return;
+                 }
+
+
+                // Validate the target scene
+                const sceneExists = gameContent.scenes.find(s => s.id === nextSceneId);
+                if (sceneExists) {
+                    elements.choices.style.display = 'none'; // Hide choices container
+                    updateGameState({ isShowingChoices: false }); // Update state
+                    loadScene(nextSceneId); // Load the next scene
+                } else {
+                    // Handle invalid scene ID
+                    console.error(`Choice leads to non-existent scene: ${nextSceneId}.`);
+                    showUserMessage(`エラー：次のシーン (${nextSceneId}) が見つかりません。タイトルに戻ります。`, "error", 6000);
+                    elements.choices.style.display = 'none';
+                    updateGameState({ isShowingChoices: false, isTitleScreen: true }); // Go to title on error
+                }
+            }
+
+            // --- Title Screen Logic ---
+            function showTitleScreen() {
+                // console.log("Showing title screen");
+                 // Set title screen background dynamically from encoded content
+                 const titleBgKey = gameContent.scenes.find(s => s.id === 'title')?.background;
+                 const titleBgSrc = titleBgKey ? resourceLoader.getImageSrc(titleBgKey) : null;
+                 elements.titleScreen.style.backgroundImage = titleBgSrc ? `url('${titleBgSrc}')` : 'none';
+                 elements.titleScreen.style.backgroundColor = titleBgSrc ? '' : 'var(--main-bg-color)';
+
+                // Ensure game elements are hidden/reset
+                elements.game.classList.remove('visible');
+                elements.menu.classList.remove('visible');
+                elements.menu.style.display = 'none'; // Ensure display is none
+                elements.menuButton.style.display = 'none'; // Hide menu button
+                elements.choices.style.display = 'none';
+                elements.dialogBox.style.display = 'none'; // Hide dialog box
+                audioManager.stopBGM(); // Stop any game BGM
+                // Optionally: Play title screen specific BGM
+                // const titleBgm = resourceLoader.getAudioSrc('title', 'bgm');
+                // if (titleBgm) audioManager.playBGM('title');
+
+                cleanupScene(); // Clear game timers/transitions
+
+                // Show title screen elements
+                elements.titleScreen.classList.add('visible');
+                hideTitleLoadSlots(); // Ensure load slots are hidden initially
+
+                // Hide loading screen if it's still visible
+                if (!elements.loading.classList.contains('hidden')) {
+                    elements.loading.classList.add('hidden');
+                    elements.loading.style.pointerEvents = 'none';
+                }
+
+                // Update game state (triggers side effects if needed)
+                updateGameState({
+                    isTitleScreen: true,
+                    isMenuOpen: false,
+                    isShowingChoices: false,
+                    isTyping: false,
+                    currentSceneId: null,
+                    currentDialogIndex: 0
+                });
+            }
+
+            function hideTitleScreen() {
+                // console.log("Hiding title screen");
+                elements.titleScreen.classList.remove('visible');
+                // Show game elements (will be fully visible after game state update)
+                elements.game.classList.add('visible');
+                elements.menuButton.style.display = 'flex'; // Show menu button
+                elements.dialogBox.style.display = 'flex'; // Show dialog box
+                // State update (isTitleScreen: false) happens in the calling function (startGame, load)
+            }
+
+            function startGame() {
+                // console.log("Starting new game...");
+                audioManager.ensureAudioResumed(); // Ensure audio ready
+                const firstSceneId = gameContent.scenes.find(s => s.id !== 'title')?.id; // Find the first non-title scene ID
+
+                if (!firstSceneId) {
+                     console.error("No valid starting scene found in gameContent!");
+                     showUserMessage("エラー：開始シーンが見つかりません。", "error");
+                     return;
+                 }
+
+                updateGameState({ isTitleScreen: false }); // This triggers hideTitleScreen via state update
+                loadScene(firstSceneId); // Load the actual first game scene
+            }
+
+            function showTitleLoadSlots() {
+                updateTitleLoadSlots(); // Populate/update slots before showing
+                elements.titleLoadSlotsContainer.style.display = 'block';
+                // Hide main title buttons for cleaner UI
+                elements.startButton.style.display = 'none';
+                elements.loadButton.style.display = 'none';
+                elements.quitButton.style.display = 'none';
+            }
+
+            function hideTitleLoadSlots() {
+                elements.titleLoadSlotsContainer.style.display = 'none';
+                // Show main title buttons again
+                elements.startButton.style.display = 'block';
+                elements.loadButton.style.display = 'block';
+                elements.quitButton.style.display = 'block';
+            }
+
+             // Update the load slots specifically for the title screen
+            function updateTitleLoadSlots() {
+                const saves = saveManager.getAllSaveData();
+                const container = elements.titleLoadSlotsContainer;
+
+                // Clear existing slots BUT keep the back button
+                while (container.firstChild && !container.firstChild.isSameNode(elements.titleLoadBackButton)) {
+                    container.removeChild(container.firstChild);
+                }
+
+                const fragment = document.createDocumentFragment();
+
+                saves.forEach(saveData => {
+                    const slotEl = document.createElement('div');
+                    // Use updateSingleSlotUI to populate, but provide the title-specific click handler
+                    updateSingleSlotUI(slotEl, saveData, 'load', (slot, action, isEmpty) => {
+                        // Click handler for TITLE SCREEN load slots
+                        if (!isEmpty) { // Only load non-empty slots
+                            if (confirm(`スロット ${slot} からロードしますか？`)) {
+                                // On successful load, hide title screen instead of closing menu
+                                saveManager.load(slot, () => {
+                                    // No need to call hideTitleScreen directly,
+                                    // updateGameState will handle it.
+                                    updateGameState({ isTitleScreen: false });
+                                });
+                            }
+                        }
+                    });
+                    fragment.appendChild(slotEl);
+                });
+
+                // Insert the new slots before the back button
+                container.insertBefore(fragment, elements.titleLoadBackButton);
+
+                // Ensure back button is present (in case it was somehow removed)
+                if (!container.contains(elements.titleLoadBackButton)) {
+                    container.appendChild(elements.titleLoadBackButton);
+                }
+            }
+
+            // --- Generic Slot UI Update Functions ---
+
+            // Updates a container (e.g., save-slots, load-slots) with slot elements
+            function updateSlotsContainer(container, actionType, onClickCallback) {
+                if (!container) { console.warn(`Slot container for action ${actionType} not found.`); return; }
+
+                const saves = saveManager.getAllSaveData();
+                // Clear existing slots more carefully - avoid removing other important children like headers
+                const existingSlots = container.querySelectorAll('.slot');
+                existingSlots.forEach(slot => slot.remove()); // Remove only elements with 'slot' class
+
+                const fragment = document.createDocumentFragment(); // Use fragment for batch append
+
+                saves.forEach(saveData => {
+                    const slotEl = document.createElement('div'); // Create the basic div
+                    // Populate the element using the single slot updater
+                    updateSingleSlotUI(slotEl, saveData, actionType, onClickCallback);
+                    fragment.appendChild(slotEl);
+                });
+                container.appendChild(fragment); // Append all new slots at once
+            }
+
+            // Populates a single slot element with data and sets its click handler
+            function updateSingleSlotUI(slotEl, saveData, actionType, onClickCallback) {
+                // Clear existing content and attributes except dataset.slot? Be careful here.
+                slotEl.innerHTML = ''; // Clear previous content
+                slotEl.className = 'slot'; // Reset class list
+                slotEl.dataset.slot = saveData.slot;
+                slotEl.dataset.action = actionType; // Set action type (save/load)
+
+                // Slot Name (e.g., "スロット 1")
+                const nameEl = document.createElement('span');
+                nameEl.className = 'slot-name';
+                nameEl.textContent = `スロット ${saveData.slot}`;
+                slotEl.appendChild(nameEl);
+
+                // Slot Info (Timestamp, Scene ID or Empty message)
+                const infoEl = document.createElement('span');
+                infoEl.className = 'slot-info';
+                slotEl.appendChild(infoEl);
+
+                slotEl.onclick = null; // Clear previous handler first
+
+                if (saveData.isEmpty) {
+                    slotEl.classList.add('empty');
+                    infoEl.textContent = (actionType === 'save') ? '空きスロット' : 'データなし';
+                    // For 'save' action, empty slots are clickable
+                    if (actionType === 'save') {
+                         // Attach the provided click handler directly
+                        slotEl.onclick = () => onClickCallback(saveData.slot, actionType, saveData.isEmpty);
+                    } else {
+                        // Empty 'load' slots are not clickable (CSS handles cursor style)
+                         slotEl.style.cursor = 'default'; // Explicitly set cursor if needed
+                    }
+                } else {
+                    // Populate info for non-empty slots
+                    const date = new Date(saveData.timestamp);
+                     // Try to get a more descriptive scene name (e.g., chapter name) if possible
+                     const sceneInfo = gameContent.scenes.find(s => s.id === saveData.sceneId);
+                     // Extract chapter/scene number or use ID
+                     const sceneLabel = sceneInfo?.dialogs?.[0]?.text?.split('：')[0] // Get "第X章"
+                         || sceneInfo?.id?.replace(/_/g, ' ') // Fallback to ID
+                         || '不明';
+                    infoEl.textContent = `${sceneLabel} - ${date.toLocaleString('ja-JP', { dateStyle: 'short', timeStyle: 'short' })}`;
+                    // Both save (overwrite) and load actions are clickable for non-empty slots
+                    slotEl.onclick = () => onClickCallback(saveData.slot, actionType, saveData.isEmpty);
+                }
+            }
+
+             // Update the UI for a specific slot number across all relevant areas (Menu Save, Menu Load)
+             // Title load slots are updated separately or via full refresh (updateTitleLoadSlots)
+             function updateSlotUI(slotNumber) {
+                 const saveData = saveManager.getSaveData(slotNumber);
+
+                 // Update Menu Save Slot
+                 const saveSlotEl = elements.saveSlotsContainer?.querySelector(`.slot[data-slot="${slotNumber}"]`);
+                 if (saveSlotEl) {
+                     updateSingleSlotUI(saveSlotEl, saveData, 'save', (slot, action, isEmpty) => {
+                         // Re-attach the standard save click handler for the menu
+                         const confirmMsg = isEmpty ?
+                             `スロット ${slot} にセーブしますか？` :
+                             `スロット ${slot} のデータを上書きしますか？`;
+                         if (confirm(confirmMsg)) {
+                             saveManager.save(slot); // save() itself might trigger updateSlotUI again, be mindful
+                         }
+                     });
+                 }
+
+                 // Update Menu Load Slot
+                 const loadSlotEl = elements.loadSlotsContainer?.querySelector(`.slot[data-slot="${slotNumber}"]`);
+                 if (loadSlotEl) {
+                     updateSingleSlotUI(loadSlotEl, saveData, 'load', (slot, action, isEmpty) => {
+                         // Re-attach the standard load click handler for the menu
+                         if (!isEmpty) { // Only allow loading non-empty slots from menu
+                             if (confirm(`スロット ${slot} からロードしますか？`)) {
+                                 saveManager.load(slot, closeMenu); // Pass closeMenu as success callback
+                             }
+                         }
+                     });
+                 }
+
+                  // Note: Title load slots are typically updated en masse when shown (updateTitleLoadSlots)
+                  // or could be updated here if the title screen's load section is currently visible.
+                  // Example check (optional):
+                  // if (elements.titleScreen.classList.contains('visible') && elements.titleLoadSlotsContainer.style.display === 'block') {
+                  //     const titleLoadSlotEl = elements.titleLoadSlotsContainer.querySelector(`.slot[data-slot="${slotNumber}"]`);
+                  //     if (titleLoadSlotEl) {
+                  //         updateSingleSlotUI(titleLoadSlotEl, saveData, 'load', (slot, action, isEmpty) => { ... title load handler ... });
+                  //     }
+                  // }
+             }
+
+
+            // --- Menu Logic ---
+            function toggleMenu() {
+                if (gameState.isMenuOpen) {
+                    closeMenu();
+                } else {
+                    openMenu();
+                }
+            }
+
+            function openMenu() {
+                if (gameState.isTitleScreen) return; // Cannot open menu on title screen
+
+                clearAutoPlayTimer(); // Pause auto-play
+                updateMenuUI(); // Update save/load slots *before* showing
+
+                elements.menu.style.display = 'flex'; // Make it visible for transition
+                // Use requestAnimationFrame to ensure the 'display: flex' is applied before adding 'visible' class
+                requestAnimationFrame(() => {
+                    elements.menu.classList.add('visible'); // Trigger opacity transition
+                    updateGameState({ isMenuOpen: true }); // Update state *after* starting transition
+                });
+            }
+
+            function closeMenu() {
+                if (!gameState.isMenuOpen) return; // Already closed
+
+                elements.menu.classList.remove('visible'); // Start fade out transition
+                updateGameState({ isMenuOpen: false }); // Update state immediately
+
+                // Hide the menu element completely after the transition ends
+                const handleTransitionEnd = (event) => {
+                    if (event.target === elements.menu && event.propertyName === 'opacity') {
+                         // Check state again in case menu was reopened quickly
+                        if (!gameState.isMenuOpen) {
+                             elements.menu.style.display = 'none';
+                        }
+                        elements.menu.removeEventListener('transitionend', handleTransitionEnd); // Clean up listener
+                    }
+                };
+                 // Use { once: true } for safer listener removal
+                 // elements.menu.addEventListener('transitionend', handleTransitionEnd, { once: true });
+                 // Or manual removal:
+                 elements.menu.addEventListener('transitionend', handleTransitionEnd);
+
+
+                // Resume auto-play if applicable after closing menu
+                 if (gameState.settings.autoPlay && !gameState.isTyping && !gameState.isShowingChoices && !gameState.isBackgroundTransitioning) {
+                     setupAutoPlayTimer();
+                 }
+            }
+
+            // Update the content of the menu (save/load slots, settings status)
+            function updateMenuUI() {
+                // Update Save Slots Container
+                updateSlotsContainer(elements.saveSlotsContainer, 'save', (slot, action, isEmpty) => {
+                    // Define click behavior for menu save slots
+                    const confirmMsg = isEmpty ?
+                        `スロット ${slot} にセーブしますか？` :
+                        `スロット ${slot} のデータを上書きしますか？`;
+                    if (confirm(confirmMsg)) {
+                        saveManager.save(slot); // Saving will trigger updateSlotUI
+                    }
+                });
+
+                // Update Load Slots Container
+                updateSlotsContainer(elements.loadSlotsContainer, 'load', (slot, action, isEmpty) => {
+                    // Define click behavior for menu load slots
+                    if (!isEmpty) { // Only allow loading non-empty slots
+                        if (confirm(`スロット ${slot} からロードしますか？`)) {
+                            saveManager.load(slot, closeMenu); // Pass closeMenu as success callback
+                        }
+                    }
+                });
+
+                // Update settings UI to reflect current state (active buttons)
+                updateSettingsUI();
+            }
+
+            // --- Settings Logic ---
+            function setupSettingsListeners() {
+                // Use event delegation on the settings section for efficiency
+                elements.settingsSection.addEventListener('click', (e) => {
+                    const target = e.target.closest('.setting-btn'); // Find the clicked button
+                    if (!target) return; // Exit if click wasn't on a setting button
+
+                    const settingValueDiv = target.closest('.setting-value');
+                    if (!settingValueDiv) return; // Should not happen with valid HTML structure
+
+                    const id = settingValueDiv.id; // Get the ID of the setting group (e.g., 'text-speed-settings')
+                    let newSettings = { ...gameState.settings }; // Copy current settings
+
+                    try {
+                        // Determine which setting was changed based on ID and data attributes
+                        if (id === 'text-speed-settings') {
+                            const speed = target.dataset.speed;
+                            if (speed && TEXT_SPEEDS[speed] !== undefined) {
+                                newSettings.textSpeed = speed;
+                            }
+                        } else if (id === 'bgm-volume-settings') {
+                            const volume = parseFloat(target.dataset.volume);
+                            if (!isNaN(volume) && volume >= 0 && volume <= 1) {
+                                newSettings.bgmVolume = volume;
+                            }
+                        } else if (id === 'sfx-volume-settings') {
+                            const volume = parseFloat(target.dataset.volume);
+                             if (!isNaN(volume) && volume >= 0 && volume <= 1) {
+                                newSettings.sfxVolume = volume;
+                                // Play a test sound *after* applying the new volume
+                                // Use setTimeout to allow state update and volume application first
+                                setTimeout(() => audioManager.playSFX('select'), 50); // Small delay
+                            }
+                        } else if (id === 'auto-play-settings') {
+                            newSettings.autoPlay = target.dataset.auto === 'on';
+                        }
+
+                        // Update the game state with the new settings
+                        updateGameState({ settings: newSettings });
+                        updateSettingsUI(); // Update button appearances immediately
+                        saveSettings(); // Persist settings to localStorage
+                        audioManager.updateVolume(); // Apply volume changes immediately
+
+                    } catch (error) {
+                        console.error("Error processing setting change:", error);
+                        showUserMessage("設定の適用中にエラーが発生しました。", "error");
+                    }
+                });
+            }
+
+            // Update the visual state of settings buttons (add/remove 'active' class)
+            function updateSettingsUI() {
+                 try {
+                     // Text Speed
+                     elements.textSpeedSettings?.querySelectorAll('.setting-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.speed === gameState.settings.textSpeed));
+                     // BGM Volume
+                     elements.bgmVolumeSettings?.querySelectorAll('.setting-btn').forEach(btn => btn.classList.toggle('active', parseFloat(btn.dataset.volume) === gameState.settings.bgmVolume));
+                     // SFX Volume
+                     elements.sfxVolumeSettings?.querySelectorAll('.setting-btn').forEach(btn => btn.classList.toggle('active', parseFloat(btn.dataset.volume) === gameState.settings.sfxVolume));
+                     // Auto Play
+                     elements.autoPlaySettings?.querySelectorAll('.setting-btn').forEach(btn => btn.classList.toggle('active', (btn.dataset.auto === 'on') === gameState.settings.autoPlay));
+                 } catch (error) {
+                     console.error("Error updating settings UI:", error);
+                 }
+            }
+
+            // --- Auto Play Logic ---
+            function setupAutoPlayTimer() {
+                clearAutoPlayTimer(); // Clear any existing timer first
+                // Set timer only if autoPlay is on AND game is in a state where it can advance
+                if (gameState.settings.autoPlay &&
+                    !gameState.isMenuOpen &&
+                    !gameState.isTyping &&
+                    !gameState.isShowingChoices &&
+                    !gameState.isBackgroundTransitioning &&
+                    !gameState.isTitleScreen)
+                {
+                    gameState.autoPlayTimerId = setTimeout(() => {
+                        // Double-check state before advancing, in case state changed while timer was pending
+                         if (gameState.settings.autoPlay && !gameState.isMenuOpen && !gameState.isTyping &&
+                             !gameState.isShowingChoices && !gameState.isBackgroundTransitioning && !gameState.isTitleScreen) {
+                            // console.log("Auto-playing...");
+                            handleInteraction(); // Use handleInteraction to advance (ensures typing skip or dialog advance)
+                        }
+                        gameState.autoPlayTimerId = null; // Clear ID after execution or if state check fails
+                    }, AUTO_PLAY_DELAY);
+                }
+            }
+
+            function clearAutoPlayTimer() {
+                if (gameState.autoPlayTimerId) {
+                    clearTimeout(gameState.autoPlayTimerId);
+                    gameState.autoPlayTimerId = null;
+                }
+            }
+
+            // --- Input Handling ---
+            function setupTouchListeners() {
+                let touchStartY = 0;
+                let isSwiping = false;
+                const SWIPE_THRESHOLD = 50; // Min distance for swipe
+                const TAP_THRESHOLD = 10; // Max movement for tap
+
+                elements.dialogBox.addEventListener('touchstart', (e) => {
+                     // Ignore touches if not in active game state
+                    if (gameState.isTitleScreen || gameState.isMenuOpen || gameState.isShowingChoices) return;
+                    // Prevent multi-touch issues maybe?
+                    if (e.touches.length > 1) { isSwiping = true; return; } // Treat multi-touch as swipe attempt
+                    touchStartY = e.touches[0].clientY;
+                    isSwiping = false;
+                }, { passive: true }); // Passive for start is usually fine
+
+                elements.dialogBox.addEventListener('touchmove', (e) => {
+                     if (gameState.isTitleScreen || gameState.isMenuOpen || gameState.isShowingChoices || e.touches.length > 1) return;
+                     // Determine if it's a swipe based on vertical movement
+                    if (Math.abs(e.touches[0].clientY - touchStartY) > TAP_THRESHOLD) {
+                        isSwiping = true;
+                    }
+                     // Note: Not calling preventDefault here allows normal page scrolling if dialog isn't full height
+                }, { passive: true }); // Passive is fine if we don't prevent scroll
+
+                elements.dialogBox.addEventListener('touchend', (e) => {
+                     if (gameState.isTitleScreen || gameState.isMenuOpen || gameState.isShowingChoices || e.changedTouches.length > 1) return;
+                     // Avoid processing if another touch is still active?
+                     if (e.touches.length > 0) return;
+
+                    const touchEndY = e.changedTouches[0].clientY;
+                    const swipeDistance = touchStartY - touchEndY; // Positive for swipe up
+
+                    if (isSwiping) {
+                         // Check for swipe up to open menu
+                         if (swipeDistance > SWIPE_THRESHOLD) {
+                             // console.log("Swipe up detected, toggling menu.");
+                             openMenu(); // Open menu on swipe up
+                         }
+                         // Add swipe down handling if needed (e.g., close menu or show log)
+                         // else if (swipeDistance < -SWIPE_THRESHOLD) { ... }
+                     } else {
+                         // If not swiping, treat as a tap
+                         // console.log("Tap detected on dialog box.");
+                         // Use handleInteraction for tap action (advance dialog/skip typing)
+                         handleInteraction();
+                         // Prevent click event firing immediately after touchend (common issue)
+                         e.preventDefault();
+                     }
+                    isSwiping = false; // Reset swipe flag
+                }, { passive: false }); // Needs to be non-passive because we call preventDefault
+            }
+
+            // Central handler for user interaction (click, tap, space, enter)
+            function handleInteraction() {
+                 // Ensure audio context is ready (critical on first interaction)
+                 audioManager.ensureAudioResumed();
+
+                 // Check if interaction should be ignored based on game state
+                 if (gameState.isTitleScreen || gameState.isMenuOpen || gameState.isShowingChoices || gameState.isBackgroundTransitioning) {
+                     // console.log("Interaction ignored: Invalid state.");
+                     return;
+                 }
+
+                 // If text is currently typing, complete the animation
+                 if (gameState.isTyping) {
+                     completeTextAnimation();
+                 }
+                 // Otherwise (text is fully displayed), advance the dialog
+                 else {
+                     advanceDialog();
+                 }
+            }
+
+            // Setup primary event listeners for buttons, keyboard, etc.
+            function setupEventListeners() {
+                // console.log("Setting up main event listeners");
+
+                // --- Title Screen Buttons ---
+                elements.startButton.addEventListener('click', startGame);
+                elements.loadButton.addEventListener('click', showTitleLoadSlots);
+                elements.quitButton.addEventListener('click', () => {
+                    // Cannot reliably close window/tab via JS
+                    showUserMessage("ゲームを終了します。このタブまたはウィンドウを閉じてください。", "info", 6000);
+                });
+                elements.titleLoadBackButton.addEventListener('click', hideTitleLoadSlots);
+
+                // --- Game Interaction (Dialog Box Click) ---
+                 // Use click for mouse interaction
+                elements.dialogBox.addEventListener('click', (e) => {
+                     // Ignore clicks synthesized from touchend, or if menu/choices active
+                     if (e.detail > 0 && !gameState.isTitleScreen && !gameState.isMenuOpen && !gameState.isShowingChoices) {
+                         // console.log("Click detected on dialog box.");
+                         handleInteraction();
+                     }
+                });
+
+                // --- Keyboard Interaction ---
+                document.addEventListener('keydown', (e) => {
+                    // Ignore keydown if focus is on an input element (none in this UI, but good practice)
+                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                    // Ignore keyboard shortcuts if modifier keys are pressed (unless intended)
+                    if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+                    if (gameState.isTitleScreen) {
+                         // Add keyboard navigation for title screen if desired (e.g., Enter for Start)
+                         if (e.code === 'Enter' || e.code === 'NumpadEnter') {
+                             e.preventDefault();
+                             startGame();
+                         }
+                        return; // No other keys active on title screen
+                    }
+
+                    if (gameState.isMenuOpen) {
+                         // Close menu with Escape
+                        if (e.code === 'Escape') {
+                            e.preventDefault();
+                            closeMenu();
+                        }
+                        return; // No other game keys active when menu is open
+                    }
+
+                    // --- In-Game Keys (Menu closed, not on Title Screen) ---
+                    if (e.code === 'Space' || e.code === 'Enter' || e.code === 'NumpadEnter') {
+                        e.preventDefault(); // Prevent spacebar scrolling page
+                        handleInteraction(); // Advance dialog or skip typing
+                    }
+                    if (e.code === 'Escape' || e.code === 'KeyM') { // Escape or M for Menu
+                        e.preventDefault();
+                        toggleMenu();
+                    }
+                    // Add other keys if needed (e.g., 'L' for Log, 'S' for Save - would need menu integration)
+                });
+
+                // --- Menu Buttons ---
+                elements.menuButton.addEventListener('click', toggleMenu);
+                elements.backToGame.addEventListener('click', closeMenu);
+
+                // --- Global listeners for Audio Context Resumption ---
+                 // Add listener to resume audio on first interaction, then remove itself
+                 const resumeAudioOnce = () => {
+                     audioManager.ensureAudioResumed();
+                     // Remove this specific listener after first interaction
+                     ['click', 'keydown', 'touchstart'].forEach(evt => {
+                         document.body.removeEventListener(evt, resumeAudioOnce, { capture: true });
+                     });
+                 };
+                 ['click', 'keydown', 'touchstart'].forEach(evt => {
+                     document.body.addEventListener(evt, resumeAudioOnce, { once: true, capture: true });
+                 });
+            }
+
+            // --- Game Initialization ---
+            async function init() {
+                console.log("Initializing game...");
+                try {
+                    // 1. Load Settings
+                    try {
+                        const savedSettings = localStorage.getItem('gameSettings');
+                        if (savedSettings) {
+                            const parsedSettings = JSON.parse(savedSettings);
+                            // Merge saved settings, ensuring all keys exist
+                            gameState.settings = { ...gameState.settings, ...parsedSettings };
+                        }
+                    } catch (e) {
+                        console.warn("Failed to load/parse settings, using defaults:", e);
+                    }
+
+                    // 2. Initialize Save Cache
+                    saveManager.initCache(); // Load save data into memory
+
+                    // 3. Initialize Audio Manager (creates Audio elements)
+                    // Ensure SFX pool uses correct volume from potentially loaded settings
+                    gameState.settings.sfxVolume = gameState.settings.sfxVolume; // Trigger update? No, do it in init.
+                    await audioManager.init();
+
+                    // 4. Setup UI Listeners and Initial State
+                    setupEventListeners();
+                    setupSettingsListeners(); // For menu settings
+                    setupTouchListeners(); // For dialog interaction
+                    updateSettingsUI(); // Reflect loaded/default settings in UI
+
+                    // 5. Show Title Screen (hides loading screen)
+                    showTitleScreen(); // Initial state is title screen
+
+                    // 6. Start Background Resource Preloading (non-critical assets)
+                    // Run preloadResources in the background, don't await it here
+                    resourceLoader.preloadResources().then(success => {
+                        if (success) {
+                            console.log("Background resource preloading complete.");
+                        } else {
+                            console.warn("Background resource preloading encountered errors.");
+                        }
+                    }).catch(error => {
+                         console.error("Error during background resource preloading:", error);
+                    });
+
+                } catch (error) {
+                    console.error("Critical game initialization error:", error);
+                    // Display error message to user if initialization fails critically
+                    if (elements.loading) elements.loading.classList.add('hidden'); // Hide loading anyway
+                    // Use a more permanent error display if possible
+                    document.body.innerHTML = `<div style="color: red; padding: 20px;">ゲームの初期化中に致命的なエラーが発生しました: ${error.message}</div>`;
+                }
+            }
+
+            // --- Start the game initialization ---
+            // Use DOMContentLoaded to ensure HTML is parsed, or run immediately if already loaded
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init(); // DOM already loaded
+            }
+
+        })(); // IIFE End
+    </script>
+</body>
+
+</html>
