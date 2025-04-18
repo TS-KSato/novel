@@ -4,6 +4,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 1. Content Security Policy (CSP) - 基本的な例 -->
+    <!-- リソースの読み込み元を制限し、XSS等のリスクを軽減 -->
+    <!-- 注意: この設定はインラインスクリプト/スタイルと特定の外部ドメインを許可しています。 -->
+    <!-- より厳格にするにはインラインコードの外部ファイル化が必要です。 -->
+    <!-- placeholder.com と data: URI はコード内で使用されているため許可が必要です。 -->
+    <!-- example.com はBGM/SFXのプレースホルダーなので、実際のソースに合わせて更新または削除してください。 -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self'; /* 基本は自身のオリジンのみ許可 */
+        script-src 'self' 'unsafe-inline'; /* 自身のオリジンとインラインスクリプトを許可 */
+        style-src 'self' 'unsafe-inline'; /* 自身のオリジンとインラインスタイルを許可 */
+        img-src 'self' https://via.placeholder.com data:; /* 画像は自身のオリジン、placeholder.com、data URIを許可 */
+        font-src 'self'; /* フォントは自身のオリジンのみ */
+        media-src 'self' https://example.com data:; /* 音声/動画は自身のオリジン、example.com(仮)、data URIを許可 */
+        connect-src 'self'; /* 通信先を自身のオリジンに限定 (もしAjax等を使う場合) */
+        frame-ancestors 'none'; /* ページがiframe内に埋め込まれるのを禁止 (クリックジャッキング対策) */
+        form-action 'self'; /* フォーム送信先を自身のオリジンに限定 */
+        base-uri 'self'; /* baseタグの悪用防止 */
+        object-src 'none'; /* object, embed, appletタグを禁止 */
+    ">
+
+    <!-- 2. X-Content-Type-Options -->
+    <!-- ブラウザによるMIMEタイプの推測を禁止 (MIMEスニッフィング攻撃対策) -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+
+    <!-- 3. Referrer-Policy -->
+    <!-- リファラ情報の送信ポリシーを設定 (プライバシー保護、情報漏洩対策) -->
+    <!-- HTTPSからはオリジンのみ、HTTPからは送信しない、同一オリジン内はフルパス -->
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+
+    <!-- 4. Permissions-Policy (Feature-Policy の後継) -->
+    <!-- 不要なブラウザ機能へのアクセスを制限 (プライバシー・セキュリティ向上) -->
+    <!-- 不要と思われる機能を無効化。必要に応じて調整してください。 -->
+    <meta http-equiv="Permissions-Policy" content="
+        accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(),
+        display-capture=(), document-domain=(), encrypted-media=(), fullscreen=(self),
+        gamepad=(), geolocation=(), gyroscope=(), layout-animations=(), legacy-image-formats=(),
+        magnetometer=(), microphone=(), midi=(), oversized-images=(), payment=(),
+        picture-in-picture=(), publickey-credentials-get=(), speaker-selection=(),
+        sync-xhr=(), unoptimized-images=(), unsized-media=(), usb=(), screen-wake-lock=(),
+        web-share=(), xr-spatial-tracking=()
+    ">
+    <!-- fullscreen=(self) はゲーム内でフルスクリーン機能を使う場合に許可 -->
     <title>銀月の姫と獅子の傭兵</title>
     <style>
         /* Reset CSS */
@@ -355,6 +397,7 @@
             height: 50px;
             font-size: 1.5rem;
             display: none;
+            /* Default: hidden */
             /* Initially hidden, controlled by JS */
             align-items: center;
             justify-content: center;
@@ -711,7 +754,7 @@
         </div>
 
         <!-- Menu button -->
-        <button id="menu-button" aria-label="メニューを開く" style="display: none;">☰</button>
+        <button id="menu-button" aria-label="メニューを開く">☰</button>
 
         <!-- Menu -->
         <div id="menu">
