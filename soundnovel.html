@@ -4,49 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- 1. Content Security Policy (CSP) - 基本的な例 -->
-    <!-- リソースの読み込み元を制限し、XSS等のリスクを軽減 -->
-    <!-- 注意: この設定はインラインスクリプト/スタイルと特定の外部ドメインを許可しています。 -->
-    <!-- より厳格にするにはインラインコードの外部ファイル化が必要です。 -->
-    <!-- placeholder.com と data: URI はコード内で使用されているため許可が必要です。 -->
-    <!-- example.com はBGM/SFXのプレースホルダーなので、実際のソースに合わせて更新または削除してください。 -->
-    <meta http-equiv="Content-Security-Policy" content="
-        default-src 'self'; /* 基本は自身のオリジンのみ許可 */
-        script-src 'self' 'unsafe-inline'; /* 自身のオリジンとインラインスクリプトを許可 */
-        style-src 'self' 'unsafe-inline'; /* 自身のオリジンとインラインスタイルを許可 */
-        img-src 'self' https://via.placeholder.com data:; /* 画像は自身のオリジン、placeholder.com、data URIを許可 */
-        font-src 'self'; /* フォントは自身のオリジンのみ */
-        media-src 'self' https://example.com data:; /* 音声/動画は自身のオリジン、example.com(仮)、data URIを許可 */
-        connect-src 'self'; /* 通信先を自身のオリジンに限定 (もしAjax等を使う場合) */
-        frame-ancestors 'none'; /* ページがiframe内に埋め込まれるのを禁止 (クリックジャッキング対策) */
-        form-action 'self'; /* フォーム送信先を自身のオリジンに限定 */
-        base-uri 'self'; /* baseタグの悪用防止 */
-        object-src 'none'; /* object, embed, appletタグを禁止 */
-    ">
-
-    <!-- 2. X-Content-Type-Options -->
-    <!-- ブラウザによるMIMEタイプの推測を禁止 (MIMEスニッフィング攻撃対策) -->
-    <meta http-equiv="X-Content-Type-Options" content="nosniff">
-
-    <!-- 3. Referrer-Policy -->
-    <!-- リファラ情報の送信ポリシーを設定 (プライバシー保護、情報漏洩対策) -->
-    <!-- HTTPSからはオリジンのみ、HTTPからは送信しない、同一オリジン内はフルパス -->
-    <meta name="referrer" content="strict-origin-when-cross-origin">
-
-    <!-- 4. Permissions-Policy (Feature-Policy の後継) -->
-    <!-- 不要なブラウザ機能へのアクセスを制限 (プライバシー・セキュリティ向上) -->
-    <!-- 不要と思われる機能を無効化。必要に応じて調整してください。 -->
-    <meta http-equiv="Permissions-Policy" content="
-        accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(),
-        display-capture=(), document-domain=(), encrypted-media=(), fullscreen=(self),
-        gamepad=(), geolocation=(), gyroscope=(), layout-animations=(), legacy-image-formats=(),
-        magnetometer=(), microphone=(), midi=(), oversized-images=(), payment=(),
-        picture-in-picture=(), publickey-credentials-get=(), speaker-selection=(),
-        sync-xhr=(), unoptimized-images=(), unsized-media=(), usb=(), screen-wake-lock=(),
-        web-share=(), xr-spatial-tracking=()
-    ">
-    <!-- fullscreen=(self) はゲーム内でフルスクリーン機能を使う場合に許可 -->
-    <title>銀月の姫と獅子の傭兵</title>
     <style>
         /* Reset CSS */
         * {
@@ -57,25 +14,19 @@
 
         /* Variables */
         :root {
-            --main-bg-color: #222;
-            --text-color: #fff;
-            --dialog-bg: rgba(0, 0, 0, 0.7);
-            --choice-bg: rgba(50, 50, 70, 0.9);
-            --choice-hover: rgba(70, 70, 100, 0.9);
-            --menu-bg: rgba(20, 20, 30, 0.95);
-            --accent-color: #9c89ff;
-            --font-main: 'Helvetica Neue', Arial, sans-serif;
-            --title-font: 'Georgia', serif;
-            /* Example title font */
-
-            /* Customizable settings */
-            --dialog-height: 30vh;
-            --transition-duration: 0.5s;
-            /* アニメーション時間 */
-            --background-transition-duration: 1s;
-            /* 背景フェード時間 */
-        }
-
+    --main-bg-color: #222;
+    --text-color: #fff;
+    --dialog-bg: rgba(0, 0, 0, 0.7);
+    --choice-bg: rgba(50, 50, 70, 0.9);
+    --choice-hover: rgba(70, 70, 100, 0.9);
+    --menu-bg: rgba(20, 20, 30, 0.95);
+    --accent-color: #9c89ff;
+    --font-main: 'Helvetica Neue', Arial, sans-serif;
+    --title-font: 'Georgia', serif;
+    --dialog-height: 35vh; 
+    --transition-duration: 0.5s;
+    --background-transition-duration: 1s;
+}
         body {
             font-family: var(--font-main);
             background-color: var(--main-bg-color);
@@ -269,23 +220,21 @@
 
         /* Dialog box */
         #dialog-box {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: var(--dialog-height);
-            background-color: var(--dialog-bg);
-            padding: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-            display: flex;
-            /* Changed from none to flex for visibility control */
-            flex-direction: column;
-            transition: transform var(--transition-duration) ease;
-            cursor: pointer;
-            /* Default cursor is pointer */
-            visibility: visible;
-            /* Use visibility for hide/show with game */
-        }
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: var(--dialog-height);
+    background-color: var(--dialog-bg);
+    padding: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    flex-direction: column;
+    transition: transform var(--transition-duration) ease;
+    cursor: pointer;
+    visibility: visible;
+    z-index: 10;
+}
 
         #game:not(.visible) #dialog-box {
             visibility: hidden;
@@ -2236,12 +2185,6 @@
                         updateSettingsUI();
                         audioManager.updateVolume();
 
-                        // Ensure first interaction state is reset if loading a saved game
-                        // because the loaded state might require audio playback immediately.
-                        // We will rely on ensureAudioResumed being called by the interaction
-                        // that *triggered* the load or the first interaction after load.
-                        // gameState.isFirstInteractionDone = false; // Reset this? Maybe not needed.
-
                         // Load scene and dialog state
                         loadScene(saveData.sceneId, saveData.dialogIndex);
                         console.log(`Game loaded from slot ${slot}`);
@@ -2469,6 +2412,7 @@
                     elements.background.classList.add('fade'); // Start fade out
 
                     // Listener for fade-out completion (using { once: true })
+                    // Background transition enhancement
                     const handleFadeOutEnd = (event) => {
                         if (event.target === elements.background && event.propertyName === 'opacity') {
                             // Update background image source *after* fade out
@@ -2812,34 +2756,33 @@
                 elements.titleScreen.style.backgroundImage = titleBgSrc ? `url('${titleBgSrc}')` : 'none';
                 elements.titleScreen.style.backgroundColor = titleBgSrc ? '' : 'var(--main-bg-color)';
 
-                // Ensure game elements are hidden/reset
-                elements.game.classList.remove('visible');
+                // 確実にメニューを閉じる - 追加/修正
+                if (gameState.isMenuOpen) {
+                    updateGameState({ isMenuOpen: false });
+                }
                 elements.menu.classList.remove('visible');
                 elements.menu.style.display = 'none';
-                // menuButton display is handled by #game.visible CSS rule
+
+                // ゲーム要素を非表示/リセット
+                elements.game.classList.remove('visible');
                 elements.choices.style.display = 'none';
-                // dialogBox visibility is handled by #game:not(.visible) CSS rule
 
                 audioManager.stopBGM();
-                // Optional: Play title screen specific BGM (will play after first interaction)
-                // const titleBgmKey = gameContent.assets.bgm?.title ? 'title' : null;
-                // if (titleBgmKey) audioManager.playBGM(titleBgmKey);
+                cleanupScene(); // ゲームタイマー/トランジションをクリア
 
-                cleanupScene(); // Clear game timers/transitions
-
-                // Show title screen elements
+                // タイトル画面の要素を表示
                 elements.titleScreen.classList.add('visible');
-                hideTitleLoadSlots(); // Ensure load slots are hidden initially
+                hideTitleLoadSlots(); // ロードスロットを非表示に
 
                 if (!elements.loading.classList.contains('hidden')) {
                     elements.loading.classList.add('hidden');
                     elements.loading.style.pointerEvents = 'none';
                 }
 
-                // Update game state - must happen *after* UI changes for consistency
+                // ゲーム状態の更新 - UIの変更後に行う
                 updateGameState({
                     isTitleScreen: true,
-                    isMenuOpen: false,
+                    isMenuOpen: false, // 強制的にメニューを閉じる
                     isShowingChoices: false,
                     isTyping: false,
                     currentSceneId: null,
@@ -2856,8 +2799,14 @@
             }
 
             function startGame() {
-                // console.log("Starting new game...");
-                audioManager.ensureAudioResumed(); // Ensure audio ready on the interaction that starts the game
+                // メニューが開いている場合は閉じる
+                if (gameState.isMenuOpen) {
+                    elements.menu.classList.remove('visible');
+                    elements.menu.style.display = 'none';
+                    updateGameState({ isMenuOpen: false });
+                }
+
+                audioManager.ensureAudioResumed();
                 const firstGameScene = gameContent.scenes.find(s => s.id !== TITLE_SCENE_ID);
                 const firstSceneId = firstGameScene?.id;
 
@@ -2867,7 +2816,7 @@
                     return;
                 }
 
-                updateGameState({ isTitleScreen: false }); // This triggers hideTitleScreen via state update side effect
+                updateGameState({ isTitleScreen: false });
                 loadScene(firstSceneId);
             }
 
