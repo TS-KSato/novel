@@ -14,19 +14,20 @@
 
         /* Variables */
         :root {
-    --main-bg-color: #222;
-    --text-color: #fff;
-    --dialog-bg: rgba(0, 0, 0, 0.7);
-    --choice-bg: rgba(50, 50, 70, 0.9);
-    --choice-hover: rgba(70, 70, 100, 0.9);
-    --menu-bg: rgba(20, 20, 30, 0.95);
-    --accent-color: #9c89ff;
-    --font-main: 'Helvetica Neue', Arial, sans-serif;
-    --title-font: 'Georgia', serif;
-    --dialog-height: 35vh; 
-    --transition-duration: 0.5s;
-    --background-transition-duration: 1s;
-}
+            --main-bg-color: #222;
+            --text-color: #fff;
+            --dialog-bg: rgba(0, 0, 0, 0.7);
+            --choice-bg: rgba(50, 50, 70, 0.9);
+            --choice-hover: rgba(70, 70, 100, 0.9);
+            --menu-bg: rgba(20, 20, 30, 0.95);
+            --accent-color: #9c89ff;
+            --font-main: 'Helvetica Neue', Arial, sans-serif;
+            --title-font: 'Georgia', serif;
+            --dialog-height: 35vh;
+            --transition-duration: 0.5s;
+            --background-transition-duration: 1s;
+        }
+
         body {
             font-family: var(--font-main);
             background-color: var(--main-bg-color);
@@ -220,21 +221,21 @@
 
         /* Dialog box */
         #dialog-box {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: var(--dialog-height);
-    background-color: var(--dialog-bg);
-    padding: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-    display: flex;
-    flex-direction: column;
-    transition: transform var(--transition-duration) ease;
-    cursor: pointer;
-    visibility: visible;
-    z-index: 10;
-}
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: var(--dialog-height);
+            background-color: var(--dialog-bg);
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            transition: transform var(--transition-duration) ease;
+            cursor: pointer;
+            visibility: visible;
+            z-index: 10;
+        }
 
         #game:not(.visible) #dialog-box {
             visibility: hidden;
@@ -2976,25 +2977,62 @@
             }
 
             function closeMenu() {
-                if (!gameState.isMenuOpen) return; // Already closed
+                if (!gameState.isMenuOpen) return; // 既に閉じている場合は何もしない
 
-                updateGameState({ isMenuOpen: false }); // Update state first
-                elements.menu.classList.remove('visible'); // Start fade out transition
+                // 状態更新前にフラグを保存
+                const wasTyping = gameState.isTyping;
+                const wasShowingChoices = gameState.isShowingChoices;
 
-                // Hide the menu element completely after the transition ends using { once: true }
+                // 状態を更新（メニューを閉じた状態に）
+                updateGameState({ isMenuOpen: false });
+
+                // メニュー要素のフェードアウト開始
+                elements.menu.classList.remove('visible');
+
+                // メニューの非表示処理
                 const handleTransitionEnd = (event) => {
                     if (event.target === elements.menu && event.propertyName === 'opacity') {
-                        if (!gameState.isMenuOpen) { // Double check state in case reopened
+                        // メニューが完全に消えたらDOMからも非表示に
+                        if (!gameState.isMenuOpen) {
                             elements.menu.style.display = 'none';
+
+                            // ゲームの状態を確実に復元
+                            if (wasShowingChoices) {
+                                // 選択肢が表示されていた場合は再表示
+                                elements.choices.style.display = 'flex';
+                            } else if (!wasTyping && !gameState.isTyping) {
+                                // テキスト表示中でなく選択肢もない場合は次インジケータを表示
+                                elements.nextIndicator.style.display = 'block';
+
+                                // 自動再生の復元
+                                if (gameState.settings.autoPlay && !gameState.isTyping && !gameState.isShowingChoices && !gameState.isBackgroundTransitioning) {
+                                    setupAutoPlayTimer();
+                                }
+                            }
                         }
                     }
                 };
+
                 elements.menu.addEventListener('transitionend', handleTransitionEnd, { once: true });
 
-                // Resume auto-play if applicable
-                if (gameState.settings.autoPlay && !gameState.isTyping && !gameState.isShowingChoices && !gameState.isBackgroundTransitioning && !gameState.isTitleScreen) {
-                    setupAutoPlayTimer();
-                }
+                // フォールバックタイマー（トランジションイベントが発火しない場合に備えて）
+                setTimeout(() => {
+                    if (elements.menu.style.display !== 'none' && !gameState.isMenuOpen) {
+                        elements.menu.style.display = 'none';
+
+                        // 選択肢の再表示をチェック
+                        if (wasShowingChoices) {
+                            elements.choices.style.display = 'flex';
+                        } else if (!wasTyping && !gameState.isTyping) {
+                            elements.nextIndicator.style.display = 'block';
+
+                            // 自動再生設定の確認
+                            if (gameState.settings.autoPlay && !gameState.isTyping && !gameState.isShowingChoices && !gameState.isBackgroundTransitioning) {
+                                setupAutoPlayTimer();
+                            }
+                        }
+                    }
+                }, TRANSITION_DURATION_MS + 100); // トランジション時間より少し長めに設定
             }
 
             function updateMenuUI() {
@@ -3255,7 +3293,24 @@
 
                 // --- Menu Buttons ---
                 elements.menuButton.addEventListener('click', toggleMenu);
-                elements.backToGame.addEventListener('click', closeMenu);
+                elements.backToGame.addEventListener('click', () => {
+                    closeMenu();
+                    // 明示的に100ms遅延させてから状態をチェック（念のため）
+                    setTimeout(() => {
+                        if (!gameState.isMenuOpen && !gameState.isTitleScreen) {
+                            // ゲーム状態の整合性チェック
+                            if (gameState.isShowingChoices) {
+                                elements.choices.style.display = 'flex';
+                            } else if (!gameState.isTyping && !gameState.isBackgroundTransitioning) {
+                                elements.nextIndicator.style.display = 'block';
+                                // 自動再生が有効なら再開
+                                if (gameState.settings.autoPlay) {
+                                    setupAutoPlayTimer();
+                                }
+                            }
+                        }
+                    }, 100);
+                });
 
                 // --- Global listener for Audio Context Resumption (already handled by handleInteraction) ---
                 // No longer need the global body listeners as ensureAudioResumed is called
