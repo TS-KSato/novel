@@ -6,12 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
-    <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#007a88" />
-    <link rel="apple-touch-icon" href="icons/icon-192.png" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-
+    <meta name="theme-color" content="#007a88">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="icon" type="image/png" href="favicon-32.png">
     <title>オーディオブックプレーヤー</title>
     <style>
         /* Reset and Global Styles */
@@ -970,41 +971,24 @@
         /* --- SW & Push 登録 --- */
         (async () => {
             if ("serviceWorker" in navigator) {
-                try {
-                    const reg = await navigator.serviceWorker.register("./service-worker.js");
-                    console.log("SW registered:", reg);
+                const reg = await navigator.serviceWorker.register("./service-worker.js");
+                console.log("SW registered:", reg);
 
-                    /* 〔オプション〕Web Push 登録 */
-                    if ("PushManager" in window) {
-                        const subs = await reg.pushManager.getSubscription();
-                        if (!subs) {
-                            /* 自サーバーで発行した VAPID 公開鍵を渡す */
-                            const vapidKey = "<YOUR_PUBLIC_VAPID_KEY>"; // Base64URL
-                            const newSub = await reg.pushManager.subscribe({
-                                userVisibleOnly: true,
-                                applicationServerKey: urlB64ToUint8Array(vapidKey)
-                            });
-                            /* newSub をバックエンドに送信して保存する */
-                            await fetch("/api/save-subscription", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify(newSub)
-                            });
-                        }
-                    }
-                } catch (err) {
-                    console.error("SW registration / push subscription failed:", err);
+                // --- Push は GitHub Pages では使わない ---
+                const isStatic = location.host.endsWith(".github.io");
+                if (isStatic) {
+                    console.info("静的ホスティングのため Push 登録をスキップ");
+                    return; // ここで終わり
+                }
+
+                /* ↓↓↓ ここから先は本番サーバーでのみ実行 ↓↓↓ */
+                if ("PushManager" in window) {
+                    const vapidKey = "あなたの公開鍵";   // 本番だけ
+                    // …
                 }
             }
-
-            /* Base64URL → Uint8Array 変換ユーティリティ */
-            function urlB64ToUint8Array(base64String) {
-                const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-                const base64 = (base64String + padding).replace(/\-/g, "+").replace(/_/g, "/");
-                const raw = atob(base64);
-                return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
-            }
         })();
+
 
     </script>
 </body>
